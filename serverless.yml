@@ -64,13 +64,8 @@ functions:
 
 stepFunctions:
   stateMachines:
-    ExampleWorkflow: ${file(workflows/example-workflow/workflow.yml)}
   # PLOP_ADD_WORKFLOW_STATE_MACHINE
 
 resources:
   Outputs:
-    ExampleWorkflowStateMachine:
-      Description: Example workflow state machine Arn
-      Value:
-        Ref: ExampleWorkflow${self:service}${opt:stage, 'dev'}
     # PLOP_ADD_WORKFLOW_RESOURCE
