@@ -1,4 +1,4 @@
-image: node:18-alpine
+image: atlassian/default-image:4
 definitions:
   steps:
     - step: &compile
@@ -8,7 +8,19 @@ definitions:
         script:
           - npm ci
           - npm run lint
+    - step: &test
+        name: Test
+        size: 2x
+        services:
+          - docker
+        script:
+          - npm ci
+          - npm install pm2 -g
+          - npm run lint
+          - npm run run-migrations
+          - pm2 start "./node_modules/.bin/serverless offline start -s dev --httpPort 1337 --lambdaPort 4000 --reloadHandler" --wait-ready --listen-timeout 10000
           - npm run test
+          - pm2 stop all
     - step: &deploy
         name: Deploy
         trigger: manual
@@ -22,6 +34,7 @@ definitions:
 pipelines:
   default:
     - step: *compile
+    - step: *test
   custom:
     deploy-to-dev:
       - step: *compile

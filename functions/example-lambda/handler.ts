@@ -19,6 +19,8 @@ import { httpErrorHandlerConfigured } from "../../shared/middleware/http-error-h
 const connectToDb = dataSource.initialize();
 const config = createConfig(process.env);
 
+process.send?.("ready");
+
 const lambdaHandler = async (event: ExampleLambdaPayload) => {
   winstonLogger.info(`Hello from ${config.appName}. Example param is: ${event.queryStringParameters.exampleParam}`);
 
