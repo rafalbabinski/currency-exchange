@@ -1,9 +1,9 @@
 example-lambda:
-  handler: functions/example-lambda/handler.handle
+  handler: functions/health-check/handler.handle
   vpc: ${self:custom.vpc}
   environment:
     POSTGRES_URL: ${env:POSTGRES_URL}
   events:
     - http:
-        path: /
+        path: /health-check
         method: GET
