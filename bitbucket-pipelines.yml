@@ -10,7 +10,6 @@ definitions:
           - npm run lint
     - step: &test
         name: Test
-        size: 2x
         services:
           - docker
         script:
@@ -19,7 +18,7 @@ definitions:
           - npm run lint
           - export POSTGRES_URL=postgres://postgres:password@127.0.0.1:5432/app
           - npm run run-migrations
-          - pm2 start "./node_modules/.bin/serverless offline start -s dev --httpPort 1337 --lambdaPort 4000 --reloadHandler" --wait-ready --listen-timeout 10000 --env RUN_READY_PROCESS=true
+          - pm2 start "./node_modules/.bin/serverless offline start -s local --httpPort 1337 --lambdaPort 4000 --reloadHandler" --wait-ready --listen-timeout 10000 --env RUN_READY_PROCESS=true
           - npm run test
           - pm2 stop all
     - step: &deploy
@@ -41,7 +40,7 @@ pipelines:
       - step: *compile
       - step:
           <<: *deploy
-          deployment: test
+          deployment: dev
           name: Deploy to DEV
 
   branches:
@@ -54,4 +53,4 @@ pipelines:
       - step: *compile
       - step:
           <<: *deploy
-          deployment: test
+          deployment: dev

@@ -10,6 +10,8 @@ package:
   individually: true
 
 custom:
+  environment:
+    API_KEY: ${env:API_KEY}
   vpc:
     securityGroupIds:
       - ${env:SECURITY_GROUP_ID}
@@ -27,6 +29,12 @@ custom:
     TaskResourceMapping:
       exampleStep: arn:aws:lambda:us-east-1:101010101010:function:${env:APP_NAME, 'tshExampleApp'}-${opt:stage, 'dev'}-example-step-lambda
       # PLOP_ADD_WORKFLOW_STEP_LOCAL_STEP
+  apiKeys:
+    local:
+      - name: ${env:APP_NAME, 'tshExampleApp'}-local-key
+        value: ${env:API_KEY}
+    dev:
+      - name: ${env:APP_NAME, 'tshExampleApp'}-dev-key
 
 provider:
   name: aws
@@ -39,6 +47,7 @@ provider:
   environment:
     APP_NAME: ${env:APP_NAME, 'tshExampleApp'}
     AWS_LAMBDAS_REGION: ${env:AWS_LAMBDAS_REGION, 'eu-west-1'}
+    API_KEY: ${env:API_KEY}
   iam:
     role:
       statements:
@@ -55,6 +64,8 @@ provider:
           - states:StartExecution
         Resource:
           - "*"
+  apiGateway:
+    apiKeys: ${self:custom.apiKeys.${opt:stage, 'local'}}
 
 functions:
   - ${file(functions/migrations/function.yml)}

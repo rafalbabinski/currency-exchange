@@ -7,3 +7,5 @@ example-lambda:
     - http:
         path: /health-check
         method: GET
+        private: true
+        cors: true
