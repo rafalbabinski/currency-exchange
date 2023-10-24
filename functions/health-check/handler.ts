@@ -4,42 +4,34 @@ import jsonBodyParser from "@middy/http-json-body-parser";
 import middy from "@middy/core";
 import { awsLambdaResponse } from "../../shared/aws";
 import { winstonLogger } from "../../shared/logger";
-import { dataSource } from "../../shared/config/db";
-import { ExampleModel } from "../../shared/models/example.model";
-import { randomUUID } from "crypto";
 import { StatusCodes } from "http-status-codes";
 import { createConfig } from "./config";
-import { ExampleLambdaPayload, exampleLambdaSchema } from "./event.schema";
 import { inputOutputLoggerConfigured } from "../../shared/middleware/input-output-logger-configured";
 import { queryParser } from "../../shared/middleware/query-parser";
-import { zodValidator } from "../../shared/middleware/zod-validator";
 import { httpCorsConfigured } from "../../shared/middleware/http-cors-configured";
 import { httpErrorHandlerConfigured } from "../../shared/middleware/http-error-handler-configured";
 
-const connectToDb = dataSource.initialize();
 const config = createConfig(process.env);
 
-const lambdaHandler = async (event: ExampleLambdaPayload) => {
-  winstonLogger.info(`Hello from ${config.appName}. Example param is: ${event.queryStringParameters.exampleParam}`);
+if (process.env.RUN_READY_PROCESS === "true") {
+  process.send?.("ready");
+}
 
-  await connectToDb;
+const lambdaHandler = async () => {
+  winstonLogger.info("Pre connection");
+  winstonLogger.info(`Config: ${JSON.stringify(config)}`);
 
-  await dataSource.getRepository(ExampleModel).save(
-    ExampleModel.create({
-      id: randomUUID(),
-      email: "some@tmp.pl",
-      firstName: "Test",
-      lastName: "User",
-    }),
-  );
+  winstonLogger.info("Post connection");
 
-  return awsLambdaResponse(StatusCodes.OK, {
-    success: true,
-    data: {
-      users: await dataSource.getRepository(ExampleModel).find(),
-      exampleParam: event.queryStringParameters.exampleParam,
-    },
-  });
+  try {
+    return awsLambdaResponse(StatusCodes.OK, {
+      uptime: process.uptime(),
+      success: true,
+      timestamp: Date.now(),
+    });
+  } catch (error) {
+    return awsLambdaResponse(StatusCodes.SERVICE_UNAVAILABLE);
+  }
 };
 
 export const handle = middy()
@@ -49,6 +41,5 @@ export const handle = middy()
   .use(httpHeaderNormalizer())
   .use(httpCorsConfigured)
   .use(queryParser())
-  .use(zodValidator(exampleLambdaSchema))
   .use(httpErrorHandlerConfigured)
   .handler(lambdaHandler);

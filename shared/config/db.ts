@@ -2,7 +2,7 @@ import { z } from "zod";
 import { pipeline } from "ts-pipe-compose";
 import { DataSource } from "typeorm";
 import { migration1667584203150 } from "../../migrations/1667584203150-migration";
-import { ExampleModel } from "../models/example.model";
+import { migration1697525862893 } from "../../migrations/1697525862893-migration";
 import { loadEnvs } from "../utils/env";
 
 // MODELS_IMPORT
@@ -14,11 +14,11 @@ const loadDbConfigFromEnvs = (env: any) => ({
   synchronize: false,
   logging: true,
   entities: [
-    ExampleModel,
     // MODELS_SETUP
   ],
   migrations: [
     migration1667584203150,
+    migration1697525862893,
     // PUT MIGRATIONS HERE
   ],
   cli: {
