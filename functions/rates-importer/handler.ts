@@ -3,20 +3,22 @@ import httpEventNormalizer from "@middy/http-event-normalizer";
 import httpHeaderNormalizer from "@middy/http-header-normalizer";
 import jsonBodyParser from "@middy/http-json-body-parser";
 import { StatusCodes } from "http-status-codes";
-import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import { DynamoDBDocumentClient, GetCommand } from "@aws-sdk/lib-dynamodb";
 import { awsLambdaResponse } from "../../shared/aws";
 import { winstonLogger } from "../../shared/logger";
-import { createConfig } from "./config";
 import { inputOutputLoggerConfigured } from "../../shared/middleware/input-output-logger-configured";
 import { queryParser } from "../../shared/middleware/query-parser";
 import { httpCorsConfigured } from "../../shared/middleware/http-cors-configured";
 import { httpErrorHandlerConfigured } from "../../shared/middleware/http-error-handler-configured";
+import { createConfig } from "./config";
 import { createCurrencyApiClient } from "./api/currency";
 import { DynamoDbCurrencyClient } from "./dynamodb/dynamodb-client";
 import { toCurrencyRatesDto } from "./helpers/to-currency-rates-dto";
 
 const config = createConfig(process.env);
+
+if (process.env.RUN_READY_PROCESS === "true") {
+  process.send?.("ready");
+}
 
 const lambdaHandler = async () => {
   winstonLogger.info("Pre connection");
@@ -32,13 +34,11 @@ const lambdaHandler = async () => {
 
     const mappedRates = toCurrencyRatesDto(rates);
 
-    winstonLogger.info(JSON.stringify(rates));
-
     await dynamoDbClient.saveCurrencyRates(mappedRates);
 
     return awsLambdaResponse(StatusCodes.OK, {
       success: true,
-      results: JSON.stringify(rates),
+      results: rates,
     });
   } catch (error) {
     return awsLambdaResponse(StatusCodes.INTERNAL_SERVER_ERROR, {

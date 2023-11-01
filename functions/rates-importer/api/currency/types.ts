@@ -1,6 +1,6 @@
-export type RatesResponse = Currency;
+export type RatesResponse = CurrencyRates;
 
-export type Currency = {
+export type CurrencyRates = {
   currency: string;
   rates: Rate[];
 };

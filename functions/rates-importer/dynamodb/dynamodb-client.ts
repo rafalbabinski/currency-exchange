@@ -5,7 +5,18 @@ export class DynamoDbCurrencyClient {
   private client: DynamoDBClient;
 
   constructor(private tableName: string) {
-    this.client = new DynamoDBClient();
+    this.client = new DynamoDBClient(
+      process.env.IS_OFFLINE
+        ? {
+            region: "localhost",
+            endpoint: "http://0.0.0.0:8005",
+            credentials: {
+              accessKeyId: "MockAccessKeyId",
+              secretAccessKey: "MockSecretAccessKey",
+            },
+          }
+        : {},
+    );
   }
 
   async saveCurrencyRates(currencyRates: CurrencyRatesDto): Promise<void> {
