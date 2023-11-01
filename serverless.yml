@@ -28,7 +28,19 @@ custom:
     stepFunctionsEndpoint: http://127.0.0.1:8083
     TaskResourceMapping:
       exampleStep: arn:aws:lambda:us-east-1:101010101010:function:${env:APP_NAME, 'tshExampleApp'}-${opt:stage, 'dev'}-example-step-lambda
-      # PLOP_ADD_WORKFLOW_STEP_LOCAL_STEP
+      # PLOP_ADD_WORKFLOW_STEP_LOCAL_STE
+  dynamodb:
+    stages:
+      - local
+      - dev
+    start:
+      port: 8000
+      inMemory: true
+      heapInitial: 200m
+      heapMax: 1g
+      migrate: true
+      seed: true
+      convertEmptyValues: true
   apiKeys:
     local:
       - name: ${env:APP_NAME, 'tshExampleApp'}-local-key
@@ -48,6 +60,12 @@ provider:
     APP_NAME: ${env:APP_NAME, 'tshExampleApp'}
     AWS_LAMBDAS_REGION: ${env:AWS_LAMBDAS_REGION, 'eu-west-1'}
     API_KEY: ${env:API_KEY}
+    DYNAMODB_CURRENCY_TABLE: ${env:DYNAMODB_CURRENCY_TABLE}
+    CURRENCY_AVAILABLE: ${env:CURRENCY_AVAILABLE}
+    CURRENCY_SCOPE: ${env:CURRENCY_SCOPE}
+    CURRENCY_API_URL: ${env:CURRENCY_API_URL}
+    CURRENCY_API_HEADER: ${env:CURRENCY_API_HEADER}
+    CURRENCY_API_TOKEN: ${env:CURRENCY_API_TOKEN}
   iam:
     role:
       statements:
@@ -64,6 +82,13 @@ provider:
           - states:StartExecution
         Resource:
           - "*"
+      - Effect: Allow
+        Action:
+          - dynamodb:PutItem
+        Resource:
+          Fn::GetAtt:
+            - currencyTable
+            - Arn
   apiGateway:
     apiKeys: ${self:custom.apiKeys.${opt:stage, 'local'}}
 
@@ -71,6 +96,7 @@ functions:
   - ${file(functions/migrations/function.yml)}
   - ${file(functions/health-check/function.yml)}
   - ${file(workflows/example-workflow/example-step/function.yml)}
+  - ${file(functions/rates-importer/function.yml)}
   # PLOP_ADD_LAMBDA
 
 stepFunctions:
@@ -80,3 +106,22 @@ stepFunctions:
 resources:
   Outputs:
     # PLOP_ADD_WORKFLOW_RESOURCE
+  Resources:
+    currencyTable:
+      Type: "AWS::DynamoDB::Table"
+      Properties:
+        TableName: ${env:DYNAMODB_CURRENCY_TABLE}
+        AttributeDefinitions:
+          - AttributeName: currencyName
+            AttributeType: S
+          - AttributeName: createdAt
+            AttributeType: S
+        KeySchema:
+          - AttributeName: currencyName
+            KeyType: HASH
+          - AttributeName: createdAt
+            KeyType: RANGE
+        ProvisionedThroughput:
+          ReadCapacityUnits: 5
+          WriteCapacityUnits: 5
+

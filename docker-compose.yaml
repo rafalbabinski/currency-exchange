@@ -1,20 +1,13 @@
 version: "3"
 services:
-  postgres:
-    image: postgres:15-alpine
-    environment:
-      POSTGRES_PASSWORD: password
-      POSTGRES_DB: app
-    networks:
-      - app
+  dynamodb-local:
+    image: "amazon/dynamodb-local"
     ports:
-      - "5432:5432"
-  adminer:
-    image: adminer
-    ports:
-      - "8080:8080"
-    networks:
-      - app
+      - "8001:8001"
+    volumes:
+      - "./docker/dynamodb:/home/dynamodblocal/data"
+    working_dir: /home/dynamodblocal
+    command: "-jar DynamoDBLocal.jar -sharedDb -dbPath ./data"
   sfLocal:
     image: amazon/aws-stepfunctions-local
     environment:

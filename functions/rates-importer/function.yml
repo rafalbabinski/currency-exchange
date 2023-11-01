@@ -1,11 +1,11 @@
-health-check:
-  handler: functions/health-check/handler.handle
+rates-importer:
+  handler: functions/rates-importer/handler.handle
   vpc: ${self:custom.vpc}
   environment:
     POSTGRES_URL: ${env:POSTGRES_URL}
   events:
     - http:
-        path: /health-check
+        path: /rates
         method: GET
         private: true
         cors: true
