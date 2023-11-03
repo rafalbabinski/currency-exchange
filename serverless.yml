@@ -29,7 +29,7 @@ custom:
     stepFunctionsEndpoint: http://127.0.0.1:8083
     TaskResourceMapping:
       exampleStep: arn:aws:lambda:us-east-1:101010101010:function:${env:APP_NAME, 'tshExampleApp'}-${opt:stage, 'dev'}-example-step-lambda
-      # PLOP_ADD_WORKFLOW_STEP_LOCAL_STE
+      # PLOP_ADD_WORKFLOW_STEP_LOCAL_STEP
   dynamodb:
     stages:
       - local
@@ -65,6 +65,7 @@ provider:
     CURRENCY_API_URL: ${env:CURRENCY_API_URL}
     CURRENCY_API_HEADER: ${env:CURRENCY_API_HEADER}
     CURRENCY_API_TOKEN: ${env:CURRENCY_API_TOKEN}
+    RATES_IMPORTER_LAMBDA_RATE: ${env:RATES_IMPORTER_LAMBDA_RATE}
   iam:
     role:
       statements:

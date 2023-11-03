@@ -2,8 +2,5 @@ rates-importer:
   handler: functions/rates-importer/handler.handle
   vpc: ${self:custom.vpc}
   events:
-    - http:
-        path: /rates
-        method: GET
-        private: true
-        cors: true
+    - schedule:
+        rate: ${env:RATES_IMPORTER_LAMBDA_RATE}

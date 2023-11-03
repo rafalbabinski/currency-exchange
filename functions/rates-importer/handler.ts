@@ -16,10 +16,6 @@ import { toCurrencyRatesDto } from "./helpers/to-currency-rates-dto";
 
 const config = createConfig(process.env);
 
-if (process.env.RUN_READY_PROCESS === "true") {
-  process.send?.("ready");
-}
-
 const lambdaHandler = async () => {
   winstonLogger.info("Pre connection");
   winstonLogger.info(`Config: ${JSON.stringify(config)}`);
@@ -38,7 +34,7 @@ const lambdaHandler = async () => {
 
     return awsLambdaResponse(StatusCodes.OK, {
       success: true,
-      results: rates,
+      results: mappedRates,
     });
   } catch (error) {
     return awsLambdaResponse(StatusCodes.INTERNAL_SERVER_ERROR, {
