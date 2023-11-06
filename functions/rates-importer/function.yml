@@ -1,0 +1,6 @@
+rates-importer:
+  handler: functions/rates-importer/handler.handle
+  vpc: ${self:custom.vpc}
+  events:
+    - schedule:
+        rate: ${env:RATES_IMPORTER_LAMBDA_RATE}

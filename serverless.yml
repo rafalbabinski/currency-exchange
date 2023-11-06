@@ -70,6 +70,7 @@ provider:
 functions:
   - ${file(functions/health-check/function.yml)}
   - ${file(workflows/example-workflow/example-step/function.yml)}
+  - ${file(functions/rates-importer/function.yml)}
   # PLOP_ADD_LAMBDA
 
 stepFunctions:
@@ -79,3 +80,21 @@ stepFunctions:
 resources:
   Outputs:
     # PLOP_ADD_WORKFLOW_RESOURCE
+  Resources:
+    currencyTable:
+      Type: "AWS::DynamoDB::Table"
+      Properties:
+        TableName: ${env:APP_NAME, 'tshExampleApp'}-${env:DYNAMODB_CURRENCY_TABLE}-${opt:stage, 'local'}
+        AttributeDefinitions:
+          - AttributeName: currencyName
+            AttributeType: S
+          - AttributeName: createdAt
+            AttributeType: S
+        KeySchema:
+          - AttributeName: currencyName
+            KeyType: HASH
+          - AttributeName: createdAt
+            KeyType: RANGE
+        ProvisionedThroughput:
+          ReadCapacityUnits: 5
+          WriteCapacityUnits: 5
