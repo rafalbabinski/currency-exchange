@@ -32,12 +32,10 @@ custom:
   dynamodb:
     stages:
       - local
-      - dev
     start:
-      port: 8000
+      docker: true
+      port: 8005
       inMemory: true
-      heapInitial: 200m
-      heapMax: 1g
       migrate: true
       seed: true
       convertEmptyValues: true
@@ -60,7 +58,7 @@ provider:
     APP_NAME: ${env:APP_NAME, 'tshExampleApp'}
     AWS_LAMBDAS_REGION: ${env:AWS_LAMBDAS_REGION, 'eu-west-1'}
     API_KEY: ${env:API_KEY}
-    DYNAMODB_CURRENCY_TABLE: ${env:DYNAMODB_CURRENCY_TABLE}
+    DYNAMODB_CURRENCY_TABLE: ${env:APP_NAME, 'tshExampleApp'}-${env:DYNAMODB_CURRENCY_TABLE}-${opt:stage, 'local'}
     CURRENCY_AVAILABLE: ${env:CURRENCY_AVAILABLE}
     CURRENCY_SCOPE: ${env:CURRENCY_SCOPE}
     CURRENCY_API_URL: ${env:CURRENCY_API_URL}
@@ -94,7 +92,6 @@ provider:
     apiKeys: ${self:custom.apiKeys.${opt:stage, 'local'}}
 
 functions:
-  - ${file(functions/migrations/function.yml)}
   - ${file(functions/health-check/function.yml)}
   - ${file(workflows/example-workflow/example-step/function.yml)}
   - ${file(functions/rates-importer/function.yml)}
@@ -111,7 +108,7 @@ resources:
     currencyTable:
       Type: "AWS::DynamoDB::Table"
       Properties:
-        TableName: ${env:DYNAMODB_CURRENCY_TABLE}
+        TableName: ${env:APP_NAME, 'tshExampleApp'}-${env:DYNAMODB_CURRENCY_TABLE}-${opt:stage, 'local'}
         AttributeDefinitions:
           - AttributeName: currencyName
             AttributeType: S

@@ -19,7 +19,6 @@ const config = createConfig(process.env);
 const lambdaHandler = async () => {
   winstonLogger.info("Pre connection");
   winstonLogger.info(`Config: ${JSON.stringify(config)}`);
-
   winstonLogger.info("Post connection");
 
   const currencyApiClient = createCurrencyApiClient();
@@ -29,8 +28,6 @@ const lambdaHandler = async () => {
     const rates = await currencyApiClient.getRates();
 
     const mappedRates = toCurrencyRatesDto(rates);
-
-    winstonLogger.info(JSON.stringify(rates));
 
     await dynamoDbClient.saveCurrencyRates(mappedRates);
 
@@ -44,7 +41,6 @@ const lambdaHandler = async () => {
     });
   }
 };
-
 export const handle = middy()
   .use(jsonBodyParser())
   .use(inputOutputLoggerConfigured())

@@ -1,8 +1,9 @@
 rates-importer:
   handler: functions/rates-importer/handler.handle
   vpc: ${self:custom.vpc}
-  environment:
-    POSTGRES_URL: ${env:POSTGRES_URL}
   events:
-    - schedule:
-        rate: ${env:RATES_IMPORTER_LAMBDA_RATE}
+    - http:
+        path: /rates
+        method: GET
+        private: true
+        cors: true
