@@ -1,10 +1,10 @@
 import { RatesResponse } from "../api/currency/types";
 
-export interface Rates {
+export interface CurrencyCodeRates {
   [currencyCode: string]: string | number;
 }
 
-export interface CurrencyRatesDto extends Rates {
+export interface CurrencyRatesDto extends CurrencyCodeRates {
   currencyName: string;
   createdAt: string;
 }
@@ -13,13 +13,11 @@ export const toCurrencyRatesDto = (response: RatesResponse): CurrencyRatesDto =>
   const currencyName = response.currency;
   const createdAt = new Date().toISOString();
 
-  const rates: Rates = {};
+  const rates: CurrencyCodeRates = {};
 
-  response.rates
-    .filter((rate) => rate.currency !== currencyName)
-    .forEach((rate) => {
-      rates[rate.currency] = rate.rate;
-    });
+  response.rates.forEach((rate) => {
+    rates[rate.currency] = rate.rate;
+  });
 
   return {
     currencyName,
