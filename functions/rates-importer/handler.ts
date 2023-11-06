@@ -11,8 +11,8 @@ import { queryParser } from "../../shared/middleware/query-parser";
 import { httpCorsConfigured } from "../../shared/middleware/http-cors-configured";
 import { httpErrorHandlerConfigured } from "../../shared/middleware/http-error-handler-configured";
 import { createCurrencyApiClient } from "./api/currency";
-import { DynamoDbCurrencyClient } from "./dynamodb/dynamodb-client";
-import { toCurrencyRatesDto } from "./helpers/to-currency-rates-dto";
+// import { DynamoDbCurrencyClient } from "./dynamodb/dynamodb-client";
+// import { toCurrencyRatesDto } from "./helpers/to-currency-rates-dto";
 
 const config = createConfig(process.env);
 
@@ -23,16 +23,16 @@ const lambdaHandler = async () => {
   winstonLogger.info("Post connection");
 
   const currencyApiClient = createCurrencyApiClient();
-  const dynamoDbClient = new DynamoDbCurrencyClient(config.dynamoDBCurrencyTable);
+  // const dynamoDbClient = new DynamoDbCurrencyClient(config.dynamoDBCurrencyTable);
 
   try {
     const rates = await currencyApiClient.getRates();
 
-    const mappedRates = toCurrencyRatesDto(rates);
+    // const mappedRates = toCurrencyRatesDto(rates);
 
     winstonLogger.info(JSON.stringify(rates));
 
-    await dynamoDbClient.saveCurrencyRates(mappedRates);
+    // await dynamoDbClient.saveCurrencyRates(mappedRates);
 
     return awsLambdaResponse(StatusCodes.OK, {
       success: true,
