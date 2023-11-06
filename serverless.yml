@@ -4,6 +4,7 @@ plugins:
   - serverless-step-functions-local
   - serverless-step-functions
   - serverless-webpack
+  - serverless-dynamodb
   - serverless-offline
 
 package:
@@ -29,6 +30,16 @@ custom:
     TaskResourceMapping:
       exampleStep: arn:aws:lambda:us-east-1:101010101010:function:${env:APP_NAME, 'tshExampleApp'}-${opt:stage, 'dev'}-example-step-lambda
       # PLOP_ADD_WORKFLOW_STEP_LOCAL_STEP
+  dynamodb:
+    stages:
+      - local
+    start:
+      docker: true
+      port: 8005
+      inMemory: true
+      migrate: true
+      seed: true
+      convertEmptyValues: true
   apiKeys:
     local:
       - name: ${env:APP_NAME, 'tshExampleApp'}-local-key
@@ -48,6 +59,13 @@ provider:
     APP_NAME: ${env:APP_NAME, 'tshExampleApp'}
     AWS_LAMBDAS_REGION: ${env:AWS_LAMBDAS_REGION, 'eu-west-1'}
     API_KEY: ${env:API_KEY}
+    DYNAMODB_CURRENCY_TABLE: ${env:APP_NAME, 'tshExampleApp'}-${env:DYNAMODB_CURRENCY_TABLE}-${opt:stage, 'local'}
+    CURRENCY_AVAILABLE: ${env:CURRENCY_AVAILABLE}
+    CURRENCY_SCOPE: ${env:CURRENCY_SCOPE}
+    CURRENCY_API_URL: ${env:CURRENCY_API_URL}
+    CURRENCY_API_HEADER: ${env:CURRENCY_API_HEADER}
+    CURRENCY_API_TOKEN: ${env:CURRENCY_API_TOKEN}
+    RATES_IMPORTER_LAMBDA_RATE: ${env:RATES_IMPORTER_LAMBDA_RATE}
   iam:
     role:
       statements:
@@ -64,6 +82,13 @@ provider:
           - states:StartExecution
         Resource:
           - "*"
+      - Effect: Allow
+        Action:
+          - dynamodb:PutItem
+        Resource:
+          Fn::GetAtt:
+            - currencyTable
+            - Arn
   apiGateway:
     apiKeys: ${self:custom.apiKeys.${opt:stage, 'local'}}
 

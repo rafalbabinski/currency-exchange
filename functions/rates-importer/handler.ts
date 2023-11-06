@@ -36,7 +36,7 @@ const lambdaHandler = async () => {
 
     return awsLambdaResponse(StatusCodes.OK, {
       success: true,
-      results: JSON.stringify(rates),
+      results: mappedRates,
     });
   } catch (error) {
     return awsLambdaResponse(StatusCodes.INTERNAL_SERVER_ERROR, {
