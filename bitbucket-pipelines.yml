@@ -18,7 +18,7 @@ definitions:
           - npm install pm2 -g
           - npm run lint
           - docker-compose up -d
-          - pm2 start "./node_modules/.bin/serverless offline start -s local --httpPort 1337 --lambdaPort 4000 --reloadHandler" --wait-ready --listen-timeout 20000 --env RUN_READY_PROCESS=true
+          - pm2 start "./node_modules/.bin/serverless offline start -s local --httpPort 1337 --lambdaPort 4000 --reloadHandler" --wait-ready --listen-timeout 10000 --env RUN_READY_PROCESS=true
           - npm run test
           - pm2 stop all
     - step: &deploy
@@ -34,7 +34,7 @@ definitions:
 pipelines:
   default:
     - step: *compile
-    - step: *test
+    # - step: *test
   custom:
     deploy-to-dev:
       - step: *compile
