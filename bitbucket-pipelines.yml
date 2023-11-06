@@ -10,6 +10,7 @@ definitions:
           - npm run lint
     - step: &test
         name: Test
+        size: 2x
         services:
           - docker
         script:
