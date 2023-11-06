@@ -1,4 +1,7 @@
 image: atlassian/default-image:4
+options:
+  docker: true
+  size: 2x
 definitions:
   steps:
     - step: &compile
@@ -10,7 +13,6 @@ definitions:
           - npm run lint
     - step: &test
         name: Test
-        size: 2x
         services:
           - docker
         script:
