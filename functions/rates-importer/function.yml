@@ -7,3 +7,5 @@ rates-importer:
         method: GET
         private: true
         cors: true
+    - schedule:
+        rate: ${env:RATES_IMPORTER_LAMBDA_RATE}
