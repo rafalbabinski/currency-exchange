@@ -1,7 +1,4 @@
 image: atlassian/default-image:4
-options:
-  docker: true
-  size: 2x
 definitions:
   steps:
     - step: &compile
@@ -15,12 +12,13 @@ definitions:
         name: Test
         services:
           - docker
+        size: 2x
         script:
           - npm ci
           - npm install pm2 -g
           - npm run lint
           - docker-compose up -d
-          - pm2 start "./node_modules/.bin/serverless offline start -s local --httpPort 1337 --lambdaPort 4000 --reloadHandler" --wait-ready --listen-timeout 10000 --env RUN_READY_PROCESS=true
+          - pm2 start "./node_modules/.bin/serverless offline start -s local --httpPort 1337 --lambdaPort 4000 --reloadHandler" --wait-ready --listen-timeout 20000 --env RUN_READY_PROCESS=true
           - npm run test
           - pm2 stop all
     - step: &deploy
