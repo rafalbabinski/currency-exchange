@@ -3,6 +3,7 @@ useDotenv: true
 plugins:
   - serverless-step-functions-local
   - serverless-step-functions
+  - serverless-iam-roles-per-function
   - serverless-webpack
   - serverless-dynamodb
   - serverless-offline
@@ -59,13 +60,6 @@ provider:
     APP_NAME: ${env:APP_NAME, 'tshExampleApp'}
     AWS_LAMBDAS_REGION: ${env:AWS_LAMBDAS_REGION, 'eu-west-1'}
     API_KEY: ${env:API_KEY}
-    DYNAMODB_CURRENCY_TABLE: ${env:APP_NAME, 'tshExampleApp'}-${env:DYNAMODB_CURRENCY_TABLE}-${opt:stage, 'local'}
-    CURRENCY_AVAILABLE: ${env:CURRENCY_AVAILABLE}
-    CURRENCY_SCOPE: ${env:CURRENCY_SCOPE}
-    CURRENCY_API_URL: ${env:CURRENCY_API_URL}
-    CURRENCY_API_HEADER: ${env:CURRENCY_API_HEADER}
-    CURRENCY_API_TOKEN: ${env:CURRENCY_API_TOKEN}
-    RATES_IMPORTER_LAMBDA_RATE: ${env:RATES_IMPORTER_LAMBDA_RATE}
   iam:
     role:
       statements:
@@ -82,13 +76,6 @@ provider:
           - states:StartExecution
         Resource:
           - "*"
-      - Effect: Allow
-        Action:
-          - dynamodb:PutItem
-        Resource:
-          Fn::GetAtt:
-            - currencyTable
-            - Arn
   apiGateway:
     apiKeys: ${self:custom.apiKeys.${opt:stage, 'local'}}
 

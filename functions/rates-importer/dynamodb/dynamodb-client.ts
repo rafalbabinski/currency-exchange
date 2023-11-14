@@ -1,41 +1,26 @@
-import { DynamoDBClient, PutItemCommand } from "@aws-sdk/client-dynamodb";
+import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
+import { PutCommand } from "@aws-sdk/lib-dynamodb";
 import { CurrencyRatesDto } from "../helpers/to-currency-rates-dto";
+import { createDynamoDBClient } from "../../../shared/dynamodb/dynamodb-client-factory";
 
 export class DynamoDbCurrencyClient {
   private client: DynamoDBClient;
 
-  constructor(private tableName: string) {
-    this.client = new DynamoDBClient(
-      process.env.IS_OFFLINE
-        ? {
-            region: "localhost",
-            endpoint: "http://0.0.0.0:8005",
-            credentials: {
-              accessKeyId: "MockAccessKeyId",
-              secretAccessKey: "MockSecretAccessKey",
-            },
-          }
-        : {},
-    );
+  constructor(private tableName: string, private isOffline: boolean) {
+    this.client = createDynamoDBClient(this.isOffline);
   }
 
   async saveCurrencyRates(currencyRates: CurrencyRatesDto): Promise<void> {
     const { createdAt, currencyName, ...rates } = currencyRates;
 
     const ratesItems = Object.keys(rates).map((currencyCode) => ({
-      [currencyCode]: {
-        N: rates[currencyCode].toString(),
-      },
+      [currencyCode]: rates[currencyCode].toString(),
     }));
 
-    const putItemCommand = new PutItemCommand({
+    const putItemCommand = new PutCommand({
       Item: {
-        createdAt: {
-          S: createdAt,
-        },
-        currencyName: {
-          S: currencyName,
-        },
+        createdAt,
+        currencyName,
         ...Object.assign({}, ...ratesItems),
       },
       TableName: this.tableName,

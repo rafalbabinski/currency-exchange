@@ -1,4 +1,4 @@
-example-lambda:
+health-check:
   handler: functions/health-check/handler.handle
   vpc: ${self:custom.vpc}
   events:

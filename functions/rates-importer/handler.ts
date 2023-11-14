@@ -1,36 +1,41 @@
 import middy from "@middy/core";
-import httpEventNormalizer from "@middy/http-event-normalizer";
-import httpHeaderNormalizer from "@middy/http-header-normalizer";
 import jsonBodyParser from "@middy/http-json-body-parser";
+import axios from "axios";
 import { StatusCodes } from "http-status-codes";
-import { awsLambdaResponse } from "../../shared/aws";
-import { winstonLogger } from "../../shared/logger";
-import { createConfig } from "./config";
+import { awsLambdaResponse, createErrorResponse } from "../../shared/aws";
 import { inputOutputLoggerConfigured } from "../../shared/middleware/input-output-logger-configured";
-import { queryParser } from "../../shared/middleware/query-parser";
 import { httpCorsConfigured } from "../../shared/middleware/http-cors-configured";
 import { httpErrorHandlerConfigured } from "../../shared/middleware/http-error-handler-configured";
+import { HttpError } from "../../shared/errors/http.error";
+import { winstonLogger } from "../../shared/logger";
+import { createConfig } from "./config";
 import { createCurrencyApiClient } from "./api/currency";
 import { DynamoDbCurrencyClient } from "./dynamodb/dynamodb-client";
 import { toCurrencyRatesDto } from "./helpers/to-currency-rates-dto";
 
+const isOffline = process.env.IS_OFFLINE === "true";
+
 const config = createConfig(process.env);
 
+const currencyApiClient = createCurrencyApiClient();
+
 const lambdaHandler = async () => {
-  winstonLogger.info("Pre connection");
-  winstonLogger.info(`Config: ${JSON.stringify(config)}`);
-
-  winstonLogger.info("Post connection");
-
-  const currencyApiClient = createCurrencyApiClient();
-  const dynamoDbClient = new DynamoDbCurrencyClient(config.dynamoDBCurrencyTable);
+  const dynamoDbClient = new DynamoDbCurrencyClient(config.dynamoDBCurrencyTable, isOffline);
 
   try {
     const rates = await currencyApiClient.getRates();
 
     const mappedRates = toCurrencyRatesDto(rates);
 
-    winstonLogger.info(JSON.stringify(rates));
+    winstonLogger.info("Currency rates:", rates);
+
+    try {
+      await dynamoDbClient.saveCurrencyRates(mappedRates);
+    } catch (error) {
+      if (error instanceof Error) {
+        return createErrorResponse(new HttpError(`Failed to save currency rates: ${error.message}`, 500));
+      }
+    }
 
     await dynamoDbClient.saveCurrencyRates(mappedRates);
 
@@ -39,18 +44,17 @@ const lambdaHandler = async () => {
       results: mappedRates,
     });
   } catch (error) {
-    return awsLambdaResponse(StatusCodes.INTERNAL_SERVER_ERROR, {
-      success: false,
-    });
+    if (axios.isAxiosError(error)) {
+      return createErrorResponse(new HttpError(`Failed to fetch currency rates: ${error.message}`, 500));
+    }
+
+    return createErrorResponse(error);
   }
 };
 
 export const handle = middy()
   .use(jsonBodyParser())
   .use(inputOutputLoggerConfigured())
-  .use(httpEventNormalizer())
-  .use(httpHeaderNormalizer())
   .use(httpCorsConfigured)
-  .use(queryParser())
   .use(httpErrorHandlerConfigured)
   .handler(lambdaHandler);

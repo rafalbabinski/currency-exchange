@@ -1,6 +1,22 @@
 rates-importer:
   handler: functions/rates-importer/handler.handle
   vpc: ${self:custom.vpc}
+  environment:
+    DYNAMODB_CURRENCY_TABLE: ${env:APP_NAME, 'tshExampleApp'}-${env:DYNAMODB_CURRENCY_TABLE}-${opt:stage, 'local'}
+    CURRENCY_AVAILABLE: ${env:CURRENCY_AVAILABLE}
+    CURRENCY_SCOPE: ${env:CURRENCY_SCOPE}
+    CURRENCY_API_URL: ${env:CURRENCY_API_URL}
+    CURRENCY_API_HEADER: ${env:CURRENCY_API_HEADER}
+    CURRENCY_API_TOKEN: ${env:CURRENCY_API_TOKEN}
+    RATES_IMPORTER_LAMBDA_RATE: ${env:RATES_IMPORTER_LAMBDA_RATE}
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - dynamodb:PutItem
+      Resource:
+        Fn::GetAtt:
+          - currencyTable
+          - Arn
   events:
     - http:
         path: /rates-importer
