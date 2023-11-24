@@ -11,7 +11,7 @@ import { httpCorsConfigured } from "../../shared/middleware/http-cors-configured
 import { httpErrorHandlerConfigured } from "../../shared/middleware/http-error-handler-configured";
 import { queryParser } from "../../shared/middleware/query-parser";
 import { zodValidator } from "../../shared/middleware/zod-validator";
-import { calculateExchangeRate } from "./helpers/calculate-exchange-rate";
+import { calculateExchangeRate } from "./helpers/calculate-exchange-rates";
 import { createConfig } from "./config";
 import { DynamoDbCurrencyClient } from "./dynamodb/dynamodb-client";
 import { GetRatesLambdaPayload, getRatesLambdaSchema } from "./event.schema";
@@ -30,15 +30,15 @@ const lambdaHandler = async (event: GetRatesLambdaPayload) => {
     throw Error("No currency rates available");
   }
 
-  const exchangeRate = calculateExchangeRate({
-    startCurrency: event.queryStringParameters.startCurrency,
-    endCurrency: event.queryStringParameters.endCurrency,
+  const exchangeRates = calculateExchangeRate({
+    baseCurrency: event.queryStringParameters.baseCurrency,
     currencyRates,
   });
 
   return awsLambdaResponse(StatusCodes.OK, {
     success: true,
-    rate: exchangeRate,
+    baseCurrency: event.queryStringParameters.baseCurrency,
+    results: exchangeRates,
   });
 };
 
