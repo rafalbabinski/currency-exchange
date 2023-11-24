@@ -1,3 +1,7 @@
+export type RatesParams = {
+  currency: string;
+};
+
 export type RatesResponse = CurrencyRates;
 
 export type CurrencyRates = {

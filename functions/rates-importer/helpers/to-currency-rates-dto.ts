@@ -5,24 +5,22 @@ export interface Rates {
 }
 
 export interface CurrencyRatesDto extends Rates {
-  currencyName: string;
+  baseCurrency: string;
   createdAt: string;
 }
 
 export const toCurrencyRatesDto = (response: RatesResponse): CurrencyRatesDto => {
-  const currencyName = response.currency;
+  const baseCurrency = response.currency;
   const createdAt = new Date().toISOString();
 
   const rates: Rates = {};
 
-  response.rates
-    .filter((rate) => rate.currency !== currencyName)
-    .forEach((rate) => {
-      rates[rate.currency] = rate.rate;
-    });
+  response.rates.forEach((rate) => {
+    rates[rate.currency] = rate.rate;
+  });
 
   return {
-    currencyName,
+    baseCurrency,
     createdAt,
     ...rates,
   };

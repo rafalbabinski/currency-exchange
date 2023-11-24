@@ -11,6 +11,10 @@ describe("toCurrencyRatesDto", () => {
     sinon.useFakeTimers(mockNow.getTime());
   });
 
+  afterEach(() => {
+    sinon.restore();
+  });
+
   it("should convert RatesResponse to CurrencyRatesDto", () => {
     const ratesResponse: RatesResponse = {
       currency: "USD",
@@ -21,7 +25,7 @@ describe("toCurrencyRatesDto", () => {
     };
 
     const expectedDto: CurrencyRatesDto = {
-      currencyName: "USD",
+      baseCurrency: "USD",
       createdAt: new Date().toISOString(),
       EUR: 0.85,
       GBP: 0.75,

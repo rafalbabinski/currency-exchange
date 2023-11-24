@@ -23,7 +23,9 @@ const lambdaHandler = async () => {
   const dynamoDbClient = new DynamoDbCurrencyClient(config.dynamoDBCurrencyTable, isOffline);
 
   try {
-    const rates = await currencyApiClient.getRates();
+    const rates = await currencyApiClient.getRates({
+      currency: config.baseCurrency,
+    });
 
     const mappedRates = toCurrencyRatesDto(rates);
 

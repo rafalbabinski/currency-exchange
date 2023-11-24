@@ -83,6 +83,7 @@ functions:
   - ${file(functions/health-check/function.yml)}
   - ${file(workflows/example-workflow/example-step/function.yml)}
   - ${file(functions/rates-importer/function.yml)}
+  - ${file(functions/get-rates/function.yml)}
   # PLOP_ADD_LAMBDA
 
 stepFunctions:
@@ -98,12 +99,12 @@ resources:
       Properties:
         TableName: ${env:APP_NAME, 'tshExampleApp'}-${env:DYNAMODB_CURRENCY_TABLE}-${opt:stage, 'local'}
         AttributeDefinitions:
-          - AttributeName: currencyName
+          - AttributeName: baseCurrency
             AttributeType: S
           - AttributeName: createdAt
             AttributeType: S
         KeySchema:
-          - AttributeName: currencyName
+          - AttributeName: baseCurrency
             KeyType: HASH
           - AttributeName: createdAt
             KeyType: RANGE
