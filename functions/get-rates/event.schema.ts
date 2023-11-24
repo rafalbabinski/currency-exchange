@@ -1,4 +1,5 @@
 import { z } from "zod";
+
 import { regExp } from "../../shared/utils/reg-exp";
 
 export const getRatesLambdaSchema = z.object({

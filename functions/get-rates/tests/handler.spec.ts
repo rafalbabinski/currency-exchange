@@ -1,4 +1,5 @@
 import request from "supertest";
+
 import { createConfig } from "./../config";
 
 const config = createConfig(process.env);

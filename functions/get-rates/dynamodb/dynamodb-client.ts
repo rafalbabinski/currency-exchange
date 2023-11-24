@@ -1,6 +1,7 @@
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import { createDynamoDBClient } from "../../../shared/dynamodb/dynamodb-client-factory";
 import { QueryCommand } from "@aws-sdk/lib-dynamodb";
+
+import { createDynamoDBClient } from "../../../shared/dynamodb/dynamodb-client-factory";
 import { IQueryCommandOutput } from "../../../shared/types/dynamo-db.types";
 import { CurrencyRatesDto } from "../../rates-importer/helpers/to-currency-rates-dto";
 
