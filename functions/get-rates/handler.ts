@@ -17,22 +17,21 @@ import { DynamoDbCurrencyClient } from "./dynamodb/dynamodb-client";
 import { GetRatesLambdaPayload, getRatesLambdaSchema } from "./event.schema";
 
 const isOffline = process.env.IS_OFFLINE === "true";
+
 const config = createConfig(process.env);
 
-const lambdaHandler = async (event: GetRatesLambdaPayload) => {
-  const dynamoDbClient = new DynamoDbCurrencyClient(config.dynamoDBCurrencyTable, isOffline);
+const dynamoDbClient = new DynamoDbCurrencyClient(config.dynamoDBCurrencyTable, isOffline);
 
+const lambdaHandler = async (event: GetRatesLambdaPayload) => {
   const response = await dynamoDbClient.getCurrencyRates(config.baseCurrency);
 
-  const currencyRates = response.Items?.[0];
-
-  if (!currencyRates) {
+  if (!response) {
     throw Error("No currency rates available");
   }
 
   const exchangeRates = calculateExchangeRate({
     baseCurrency: event.queryStringParameters.baseCurrency,
-    currencyRates,
+    currencyRates: response,
   });
 
   return awsLambdaResponse(StatusCodes.OK, {

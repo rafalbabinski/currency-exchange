@@ -2,7 +2,6 @@ rates-importer:
   handler: functions/rates-importer/handler.handle
   vpc: ${self:custom.vpc}
   environment:
-    DYNAMODB_CURRENCY_TABLE: ${env:APP_NAME, 'tshExampleApp'}-${env:DYNAMODB_CURRENCY_TABLE}-${opt:stage, 'local'}
     CURRENCY_AVAILABLE: ${env:CURRENCY_AVAILABLE}
     CURRENCY_SCOPE: ${env:CURRENCY_SCOPE}
     BASE_CURRENCY: ${env:BASE_CURRENCY}

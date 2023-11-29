@@ -1,12 +1,12 @@
 import middy from "@middy/core";
 import jsonBodyParser from "@middy/http-json-body-parser";
-import axios from "axios";
+import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import { StatusCodes } from "http-status-codes";
-import { awsLambdaResponse, createErrorResponse } from "../../shared/aws";
+import { awsLambdaResponse } from "../../shared/aws";
+import { errorLambdaResponse } from "../../shared/middleware/error-lambda-response";
 import { inputOutputLoggerConfigured } from "../../shared/middleware/input-output-logger-configured";
 import { httpCorsConfigured } from "../../shared/middleware/http-cors-configured";
 import { httpErrorHandlerConfigured } from "../../shared/middleware/http-error-handler-configured";
-import { HttpError } from "../../shared/errors/http.error";
 import { winstonLogger } from "../../shared/logger";
 import { createConfig } from "./config";
 import { createCurrencyApiClient } from "./api/currency";
@@ -19,44 +19,28 @@ const config = createConfig(process.env);
 
 const currencyApiClient = createCurrencyApiClient();
 
-const lambdaHandler = async () => {
-  const dynamoDbClient = new DynamoDbCurrencyClient(config.dynamoDBCurrencyTable, isOffline);
+const dynamoDbClient = new DynamoDbCurrencyClient(config.dynamoDBCurrencyTable, isOffline);
 
-  try {
-    const rates = await currencyApiClient.getRates({
-      currency: config.baseCurrency,
-    });
+const lambdaHandler = async (): Promise<APIGatewayProxyResult> => {
+  const rates = await currencyApiClient.getRates({
+    currency: config.baseCurrency,
+  });
 
-    const mappedRates = toCurrencyRatesDto(rates);
+  const mappedRates = toCurrencyRatesDto(rates);
 
-    winstonLogger.info("Currency rates:", rates);
+  winstonLogger.info("Currency rates:", rates);
 
-    try {
-      await dynamoDbClient.saveCurrencyRates(mappedRates);
-    } catch (error) {
-      if (error instanceof Error) {
-        return createErrorResponse(new HttpError(`Failed to save currency rates: ${error.message}`, 500));
-      }
-    }
+  await dynamoDbClient.saveCurrencyRates(mappedRates);
 
-    await dynamoDbClient.saveCurrencyRates(mappedRates);
-
-    return awsLambdaResponse(StatusCodes.OK, {
-      success: true,
-      results: mappedRates,
-    });
-  } catch (error) {
-    if (axios.isAxiosError(error)) {
-      return createErrorResponse(new HttpError(`Failed to fetch currency rates: ${error.message}`, 500));
-    }
-
-    return createErrorResponse(error);
-  }
+  return awsLambdaResponse(StatusCodes.OK, {
+    success: true,
+    results: mappedRates,
+  });
 };
 
-export const handle = middy()
-  .use(jsonBodyParser())
+export const handle = middy<APIGatewayProxyEvent, APIGatewayProxyResult>()
   .use(inputOutputLoggerConfigured())
   .use(httpCorsConfigured)
   .use(httpErrorHandlerConfigured)
+  .use(errorLambdaResponse)
   .handler(lambdaHandler);

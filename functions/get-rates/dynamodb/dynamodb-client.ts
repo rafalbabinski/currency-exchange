@@ -2,7 +2,6 @@ import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { QueryCommand } from "@aws-sdk/lib-dynamodb";
 
 import { createDynamoDBClient } from "../../../shared/dynamodb/dynamodb-client-factory";
-import { IQueryCommandOutput } from "../../../shared/types/dynamo-db.types";
 import { CurrencyRatesDto } from "../../rates-importer/helpers/to-currency-rates-dto";
 
 export class DynamoDbCurrencyClient {
@@ -28,6 +27,6 @@ export class DynamoDbCurrencyClient {
 
     const { Items } = await this.client.send(queryCommand);
 
-    return { Items } as IQueryCommandOutput<CurrencyRatesDto[]>;
+    return Items?.[0] as CurrencyRatesDto;
   }
 }
