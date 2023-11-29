@@ -1,5 +1,4 @@
 import middy from "@middy/core";
-import jsonBodyParser from "@middy/http-json-body-parser";
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import { StatusCodes } from "http-status-codes";
 import { awsLambdaResponse } from "../../shared/aws";
