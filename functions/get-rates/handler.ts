@@ -42,7 +42,6 @@ const lambdaHandler = async (event: GetRatesLambdaPayload) => {
 };
 
 export const handle = middy()
-  .use(jsonBodyParser())
   .use(inputOutputLoggerConfigured())
   .use(httpEventNormalizer())
   .use(httpHeaderNormalizer())
