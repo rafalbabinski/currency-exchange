@@ -1,5 +1,4 @@
 import middy from "@middy/core";
-import jsonBodyParser from "@middy/http-json-body-parser";
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import { StatusCodes } from "http-status-codes";
 import { awsLambdaResponse } from "../../shared/aws";
@@ -19,10 +18,12 @@ const config = createConfig(process.env);
 
 const currencyApiClient = createCurrencyApiClient();
 
-const lambdaHandler = async (): Promise<APIGatewayProxyResult> => {
-  const dynamoDbClient = new DynamoDbCurrencyClient(config.dynamoDBCurrencyTable, isOffline);
+const dynamoDbClient = new DynamoDbCurrencyClient(config.dynamoDBCurrencyTable, isOffline);
 
-  const rates = await currencyApiClient.getRates();
+const lambdaHandler = async (): Promise<APIGatewayProxyResult> => {
+  const rates = await currencyApiClient.getRates({
+    currency: config.baseCurrency,
+  });
 
   const mappedRates = toCurrencyRatesDto(rates);
 
@@ -37,7 +38,6 @@ const lambdaHandler = async (): Promise<APIGatewayProxyResult> => {
 };
 
 export const handle = middy<APIGatewayProxyEvent, APIGatewayProxyResult>()
-  .use(jsonBodyParser())
   .use(inputOutputLoggerConfigured())
   .use(httpCorsConfigured)
   .use(httpErrorHandlerConfigured)

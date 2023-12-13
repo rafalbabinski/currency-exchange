@@ -1,0 +1,21 @@
+get-rates:
+  handler: functions/get-rates/handler.handle
+  vpc: ${self:custom.vpc}
+  environment:
+    CURRENCY_AVAILABLE: ${env:CURRENCY_AVAILABLE}
+    CURRENCY_SCOPE: ${env:CURRENCY_SCOPE}
+    BASE_CURRENCY: ${env:BASE_CURRENCY}
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - dynamodb:GetItem
+      Resource:
+        Fn::GetAtt:
+          - currencyTable
+          - Arn
+  events:
+    - http:
+        path: /exchange-rates
+        method: GET
+        private: true
+        cors: true

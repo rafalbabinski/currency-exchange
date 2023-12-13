@@ -5,13 +5,15 @@ import { Token } from "../../../../shared/types/token.types";
 import { createConfig } from "../../config";
 import { api } from "../api";
 import { endpoints } from "./endpoints";
-import { RatesResponse } from "./types";
+import { RatesParams, RatesResponse } from "./types";
 
 const config = createConfig(process.env);
 
 export const currencyApi = (client: AxiosInstance) => {
-  const getRates = async (): Promise<RatesResponse> => {
-    const response = await client.get<RatesResponse>(endpoints.rates);
+  const getRates = async (params: RatesParams): Promise<RatesResponse> => {
+    const response = await client.get<RatesResponse>(endpoints.rates, {
+      params,
+    });
 
     return response.data;
   };
