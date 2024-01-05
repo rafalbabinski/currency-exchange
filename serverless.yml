@@ -14,7 +14,6 @@ package:
 custom:
   environment:
     DYNAMODB_CURRENCY_TABLE: ${env:APP_NAME, 'tshExampleApp'}-${env:DYNAMODB_CURRENCY_TABLE}-${opt:stage, 'local'}
-    API_KEY: ${env:API_KEY}
   vpc:
     securityGroupIds:
       - ${env:SECURITY_GROUP_ID}
