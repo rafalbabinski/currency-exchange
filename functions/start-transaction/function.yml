@@ -1,0 +1,22 @@
+start-transaction:
+  handler: functions/start-transaction/handler.handle
+  vpc: ${self:custom.vpc}
+  environment:
+    DYNAMODB_TRANSACTION_TABLE: ${self:custom.environment.DYNAMODB_TRANSACTION_TABLE}
+    CURRENCY_AVAILABLE: ${env:CURRENCY_AVAILABLE}
+    CURRENCY_SCOPE: ${env:CURRENCY_SCOPE}
+    BASE_CURRENCY: ${env:BASE_CURRENCY}
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - dynamodb:GetItem
+      Resource:
+        Fn::GetAtt:
+          - currencyTable
+          - Arn
+  events:
+    - http:
+        path: /start-transaction
+        method: POST
+        private: true
+        cors: true
