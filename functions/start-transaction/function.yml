@@ -2,10 +2,12 @@ start-transaction:
   handler: functions/start-transaction/handler.handle
   vpc: ${self:custom.vpc}
   environment:
+    STAGE: ${opt:stage, 'local'}
     DYNAMODB_TRANSACTION_TABLE: ${self:custom.environment.DYNAMODB_TRANSACTION_TABLE}
     CURRENCY_AVAILABLE: ${env:CURRENCY_AVAILABLE}
     CURRENCY_SCOPE: ${env:CURRENCY_SCOPE}
     BASE_CURRENCY: ${env:BASE_CURRENCY}
+    GET_RATES_LAMBDA_URL: ${env:GET_RATES_LAMBDA_URL}
   iamRoleStatements:
     - Effect: Allow
       Action:

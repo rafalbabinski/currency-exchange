@@ -1,3 +1,4 @@
 export const api = {
-  rates: "http://localhost:1337/local",
+  rates: (stage: string, isOffline: boolean, getRatesLambdaURL: string) =>
+    isOffline ? "http://localhost:1337/local" : `${getRatesLambdaURL}/${stage}`,
 };

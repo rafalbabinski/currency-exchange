@@ -21,7 +21,7 @@ const isOffline = process.env.IS_OFFLINE === "true";
 
 const config = createConfig(process.env);
 
-const ratesApiClient = createRatesApiClient();
+const ratesApiClient = createRatesApiClient(isOffline, config.stage, config.getRatesLambdaURL);
 
 const dynamoDbClient = new DynamoDbCurrencyClient(config.dynamoDBTransactionTable, isOffline);
 

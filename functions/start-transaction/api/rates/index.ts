@@ -23,9 +23,9 @@ export const ratesApi = (client: AxiosInstance) => {
   };
 };
 
-export const createRatesApiClient = () => {
+export const createRatesApiClient = (isOffline: boolean, stage: string, getRatesLambdaURL: string) => {
   const client = axios.create({
-    baseURL: api.rates,
+    baseURL: api.rates(stage, isOffline, getRatesLambdaURL),
   });
 
   const token: Token = {
