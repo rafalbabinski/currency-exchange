@@ -6,17 +6,12 @@ export interface Data {
   baseCurrencyAmount: number;
   endCurrency: string;
   endCurrencyAmount: number;
-  rate: number;
+  exchangeRate: number;
 }
 
-export interface TransactionDto {
+export interface TransactionDto extends Data {
   id: string;
   createdAt: string;
-  baseCurrency: string;
-  baseCurrencyAmount: number;
-  endCurrency: string;
-  endCurrencyAmount: number;
-  rate: number;
   status: TransactionStatus;
 }
 

@@ -4,7 +4,7 @@ import { PutCommand } from "@aws-sdk/lib-dynamodb";
 import { createDynamoDBClient } from "../../../shared/dynamodb/dynamodb-client-factory";
 import { TransactionDto } from "../helpers/to-transaction-dto";
 
-export class DynamoDbCurrencyClient {
+export class DynamoDbTransactionClient {
   private client: DynamoDBClient;
 
   constructor(private tableName: string, private isOffline: boolean) {

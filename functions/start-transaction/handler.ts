@@ -1,11 +1,9 @@
-/* eslint-disable no-console */
 import middy from "@middy/core";
 import httpEventNormalizer from "@middy/http-event-normalizer";
 import httpHeaderNormalizer from "@middy/http-header-normalizer";
 import jsonBodyParser from "@middy/http-json-body-parser";
 import { StatusCodes } from "http-status-codes";
 import { awsLambdaResponse } from "../../shared/aws";
-// import { winstonLogger } from "../../shared/logger";
 import { createConfig } from "./config";
 import { inputOutputLoggerConfigured } from "../../shared/middleware/input-output-logger-configured";
 import { StartTransactionLambdaPayload, startTransactionLambdaSchema } from "./event.schema";
@@ -13,34 +11,38 @@ import { zodValidator } from "../../shared/middleware/zod-validator";
 import { queryParser } from "../../shared/middleware/query-parser";
 import { httpCorsConfigured } from "../../shared/middleware/http-cors-configured";
 import { httpErrorHandlerConfigured } from "../../shared/middleware/http-error-handler-configured";
-import { DynamoDbCurrencyClient } from "./dynamodb/dynamodb-client";
-import { createRatesApiClient } from "./api/rates";
+import { DynamoDbTransactionClient } from "./dynamodb/dynamodb-client";
 import { toTransactionDto } from "./helpers/to-transaction-dto";
+import { calculateExchangeRate } from "../get-rates/helpers/calculate-exchange-rates";
+import { DynamoDbCurrencyClient } from "../get-rates/dynamodb/dynamodb-client";
 
 const isOffline = process.env.IS_OFFLINE === "true";
 
 const config = createConfig(process.env);
 
-const ratesApiClient = createRatesApiClient(isOffline, config.stage, config.getRatesLambdaURL);
+const dynamoDbTransactionClient = new DynamoDbTransactionClient(config.dynamoDBTransactionTable, isOffline);
 
-const dynamoDbClient = new DynamoDbCurrencyClient(config.dynamoDBTransactionTable, isOffline);
+const dynamoDbCurrencyClient = new DynamoDbCurrencyClient(config.dynamoDBCurrencyTable, isOffline);
 
 const lambdaHandler = async (event: StartTransactionLambdaPayload) => {
   const { baseCurrency, baseCurrencyAmount, endCurrency } = event.body;
 
-  const rates = await ratesApiClient.getRates({
+  const currencyRates = await dynamoDbCurrencyClient.getCurrencyRates(baseCurrency);
+
+  const exchangeRates = calculateExchangeRate({
     baseCurrency,
+    currencyRates,
   });
 
-  const rate = rates.results[endCurrency];
+  const exchangeRate = exchangeRates[endCurrency];
 
-  const endCurrencyAmount = rate * baseCurrencyAmount;
+  const endCurrencyAmount = exchangeRate * baseCurrencyAmount;
 
-  const transaction = { ...event.body, endCurrencyAmount, rate };
+  const transaction = { ...event.body, endCurrencyAmount, exchangeRate };
 
   const mappedTransaction = toTransactionDto(transaction);
 
-  await dynamoDbClient.initTransaction(mappedTransaction);
+  await dynamoDbTransactionClient.initTransaction(mappedTransaction);
 
   return awsLambdaResponse(StatusCodes.OK, {
     success: true,
