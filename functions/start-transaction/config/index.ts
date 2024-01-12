@@ -5,7 +5,6 @@ const loadEnvs = (env: any) => ({
   appName: env.APP_NAME,
   dynamoDBCurrencyTable: env.DYNAMODB_CURRENCY_TABLE,
   dynamoDBTransactionTable: env.DYNAMODB_TRANSACTION_TABLE,
-  apiKey: env.API_KEY,
 });
 
 const validateConfig = (config: any) => {
@@ -13,7 +12,6 @@ const validateConfig = (config: any) => {
     appName: z.string().min(1),
     dynamoDBCurrencyTable: z.string().min(1),
     dynamoDBTransactionTable: z.string().min(1),
-    apiKey: z.string().min(1),
   });
 
   try {
