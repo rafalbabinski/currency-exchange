@@ -22,7 +22,7 @@ const dynamoDbClient = new DynamoDbCurrencyClient(config.dynamoDBCurrencyTable, 
 
 const lambdaHandler = async (): Promise<APIGatewayProxyResult> => {
   const rates = await currencyApiClient.getRates({
-    currency: config.baseCurrency,
+    currency: config.currencyFrom,
   });
 
   const mappedRates = toCurrencyRatesDto(rates);

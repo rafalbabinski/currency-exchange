@@ -11,7 +11,7 @@ export class DynamoDbCurrencyClient {
   }
 
   async saveCurrencyRates(currencyRates: CurrencyRatesDto): Promise<void> {
-    const { createdAt, baseCurrency, ...rates } = currencyRates;
+    const { createdAt, currencyFrom, ...rates } = currencyRates;
 
     const ratesItems = Object.keys(rates).map((currencyCode) => ({
       [currencyCode]: rates[currencyCode].toString(),
@@ -20,7 +20,7 @@ export class DynamoDbCurrencyClient {
     const putItemCommand = new PutCommand({
       Item: {
         createdAt,
-        baseCurrency,
+        currencyFrom,
         ...Object.assign({}, ...ratesItems),
       },
       TableName: this.tableName,

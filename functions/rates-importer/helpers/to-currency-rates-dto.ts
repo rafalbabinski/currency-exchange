@@ -5,12 +5,12 @@ export interface Rates {
 }
 
 export interface CurrencyRatesDto extends Rates {
-  baseCurrency: string;
+  currencyFrom: string;
   createdAt: string;
 }
 
 export const toCurrencyRatesDto = (response: RatesResponse): CurrencyRatesDto => {
-  const baseCurrency = response.currency;
+  const currencyFrom = response.currency;
   const createdAt = new Date().toISOString();
 
   const rates: Rates = {};
@@ -20,7 +20,7 @@ export const toCurrencyRatesDto = (response: RatesResponse): CurrencyRatesDto =>
   });
 
   return {
-    baseCurrency,
+    currencyFrom,
     createdAt,
     ...rates,
   };

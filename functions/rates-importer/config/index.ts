@@ -8,7 +8,7 @@ const loadEnvs = (env: any) => ({
   dynamoDBCurrencyTable: env.DYNAMODB_CURRENCY_TABLE,
   currencyAvailable: env.CURRENCY_AVAILABLE,
   currencyScope: env.CURRENCY_SCOPE,
-  baseCurrency: env.BASE_CURRENCY,
+  currencyFrom: env.BASE_CURRENCY,
   currencyApiHeader: env.CURRENCY_API_HEADER,
   currencyApiToken: env.CURRENCY_API_TOKEN,
 });

@@ -2,10 +2,10 @@ import { nanoid } from "nanoid";
 import { TransactionStatus } from "../../../shared/types/transaction.types";
 
 export interface Data {
-  baseCurrency: string;
-  baseCurrencyAmount: number;
-  endCurrency: string;
-  endCurrencyAmount: number;
+  currencyFrom: string;
+  currencyFromAmount: number;
+  currencyTo: string;
+  currencyToAmount: number;
   exchangeRate: number;
 }
 

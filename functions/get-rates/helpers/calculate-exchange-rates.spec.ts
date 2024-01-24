@@ -7,14 +7,14 @@ import { calculateExchangeRate } from "./calculate-exchange-rates";
 const mockNow = new Date();
 
 const currencyRates: CurrencyRatesDto = {
-  baseCurrency: "USD",
+  currencyFrom: "USD",
   createdAt: new Date().toISOString(),
   USD: 1.0,
   EUR: 0.85,
   GBP: 0.75,
 };
 
-const newBaseCurrency = "EUR";
+const newcurrencyFrom = "EUR";
 
 describe("calculateExchangeRate", () => {
   beforeEach(() => {
@@ -27,7 +27,7 @@ describe("calculateExchangeRate", () => {
 
   it("should calculate exchange rates correctly for valid input", () => {
     const result = calculateExchangeRate({
-      baseCurrency: newBaseCurrency,
+      currencyFrom: newcurrencyFrom,
       currencyRates,
     });
 
@@ -40,11 +40,11 @@ describe("calculateExchangeRate", () => {
   });
 
   it("should throw an error for invalid base currency", () => {
-    const invalidBaseCurrency = "XYZ";
+    const invalidcurrencyFrom = "XYZ";
 
     expect(() => {
       calculateExchangeRate({
-        baseCurrency: invalidBaseCurrency,
+        currencyFrom: invalidcurrencyFrom,
         currencyRates,
       });
     }).to.throw("Invalid new base currency provided");
@@ -60,7 +60,7 @@ describe("calculateExchangeRate", () => {
 
     expect(() => {
       calculateExchangeRate({
-        baseCurrency: newBaseCurrency,
+        currencyFrom: newcurrencyFrom,
         currencyRates: invalidCurrencyRates,
       });
     }).to.throw("Invalid exchange rate values");

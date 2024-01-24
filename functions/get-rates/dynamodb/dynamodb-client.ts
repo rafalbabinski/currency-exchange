@@ -11,14 +11,14 @@ export class DynamoDbCurrencyClient {
     this.client = createDynamoDBClient(this.isOffline);
   }
 
-  async getCurrencyRates(baseCurrency: string) {
+  async getCurrencyRates(currencyFrom: string) {
     const queryCommand = new QueryCommand({
-      KeyConditionExpression: "#baseCurrency = :baseCurrency",
+      KeyConditionExpression: "#currencyFrom = :currencyFrom",
       ExpressionAttributeNames: {
-        "#baseCurrency": "baseCurrency",
+        "#currencyFrom": "currencyFrom",
       },
       ExpressionAttributeValues: {
-        ":baseCurrency": baseCurrency,
+        ":currencyFrom": currencyFrom,
       },
       ScanIndexForward: false,
       Limit: 1,

@@ -102,12 +102,12 @@ resources:
       Properties:
         TableName: ${env:APP_NAME, 'tshExampleApp'}-${env:DYNAMODB_CURRENCY_TABLE}-${opt:stage, 'local'}
         AttributeDefinitions:
-          - AttributeName: baseCurrency
+          - AttributeName: currencyFrom
             AttributeType: S
           - AttributeName: createdAt
             AttributeType: S
         KeySchema:
-          - AttributeName: baseCurrency
+          - AttributeName: currencyFrom
             KeyType: HASH
           - AttributeName: createdAt
             KeyType: RANGE

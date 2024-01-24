@@ -9,7 +9,7 @@ const loadEnvs = (env: any) => ({
   dynamoDBCurrencyTable: env.DYNAMODB_CURRENCY_TABLE,
   currencyAvailable: env.CURRENCY_AVAILABLE,
   currencyScope: env.CURRENCY_SCOPE,
-  baseCurrency: env.BASE_CURRENCY,
+  currencyFrom: env.BASE_CURRENCY,
 });
 
 const validateConfig = (config: any) => {

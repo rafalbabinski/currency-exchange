@@ -14,12 +14,12 @@ export const currencySchema = z
     currencyScope: z.string().refine((currencyScope) => validateCurrencyList(currencyScope), {
       message: "currencyScope must be a comma-separated list of valid 3-letter currency codes (e.g., PLN, EUR, USD)",
     }),
-    baseCurrency: z.string().refine(
-      (baseCurrency) => {
-        return new RegExp(regExp.currencyCode).test(baseCurrency);
+    currencyFrom: z.string().refine(
+      (currencyFrom) => {
+        return new RegExp(regExp.currencyCode).test(currencyFrom);
       },
       {
-        message: "baseCurrency must be valid 3-letter currency code (e.g., PLN, EUR, USD)",
+        message: "currencyFrom must be valid 3-letter currency code (e.g., PLN, EUR, USD)",
       },
     ),
   })
@@ -38,9 +38,9 @@ export const currencySchema = z
     (data) => {
       const currencyScope = data.currencyScope.split(",");
 
-      return currencyScope.includes(data.baseCurrency);
+      return currencyScope.includes(data.currencyFrom);
     },
     {
-      message: "baseCurrency must be value from currencyScope",
+      message: "currencyFrom must be value from currencyScope",
     },
   );
