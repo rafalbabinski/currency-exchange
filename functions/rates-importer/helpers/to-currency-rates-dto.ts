@@ -4,6 +4,11 @@ export interface Rates {
   [currencyCode: string]: string | number;
 }
 
+export interface CurrencyRatesData extends Rates {
+  pk: string;
+  sk: string;
+}
+
 export interface CurrencyRatesDto extends Rates {
   currencyFrom: string;
   createdAt: string;

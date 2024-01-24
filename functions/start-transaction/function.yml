@@ -3,7 +3,6 @@ start-transaction:
   vpc: ${self:custom.vpc}
   environment:
     DYNAMODB_CURRENCY_TABLE: ${self:custom.environment.DYNAMODB_CURRENCY_TABLE}
-    DYNAMODB_TRANSACTION_TABLE: ${self:custom.environment.DYNAMODB_TRANSACTION_TABLE}
     CURRENCY_AVAILABLE: ${env:CURRENCY_AVAILABLE}
     CURRENCY_SCOPE: ${env:CURRENCY_SCOPE}
     BASE_CURRENCY: ${env:BASE_CURRENCY}
@@ -11,16 +10,10 @@ start-transaction:
     - Effect: Allow
       Action:
         - dynamodb:GetItem
-      Resource:
-        Fn::GetAtt:
-          - currencyTable
-          - Arn
-    - Effect: Allow
-      Action:
         - dynamodb:PutItem
       Resource:
         Fn::GetAtt:
-          - transactionTable
+          - currencyTable
           - Arn
   events:
     - http:

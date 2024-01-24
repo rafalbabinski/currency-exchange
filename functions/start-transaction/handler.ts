@@ -20,7 +20,7 @@ const isOffline = process.env.IS_OFFLINE === "true";
 
 const config = createConfig(process.env);
 
-const dynamoDbTransactionClient = new DynamoDbTransactionClient(config.dynamoDBTransactionTable, isOffline);
+const dynamoDbTransactionClient = new DynamoDbTransactionClient(config.dynamoDBCurrencyTable, isOffline);
 
 const dynamoDbCurrencyClient = new DynamoDbCurrencyClient(config.dynamoDBCurrencyTable, isOffline);
 

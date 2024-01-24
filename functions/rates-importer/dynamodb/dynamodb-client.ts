@@ -19,8 +19,8 @@ export class DynamoDbCurrencyClient {
 
     const putItemCommand = new PutCommand({
       Item: {
-        createdAt,
-        currencyFrom,
+        pk: `currencyRate#${currencyFrom}`,
+        sk: `currencyRate#${createdAt}`,
         ...Object.assign({}, ...ratesItems),
       },
       TableName: this.tableName,

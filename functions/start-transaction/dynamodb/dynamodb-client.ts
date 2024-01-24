@@ -11,9 +11,11 @@ export class DynamoDbTransactionClient {
     this.client = createDynamoDBClient(this.isOffline);
   }
 
-  async initTransaction(transaction: TransactionDto): Promise<void> {
+  async initTransaction({ id, createdAt, ...transaction }: TransactionDto): Promise<void> {
     const putItemCommand = new PutCommand({
       Item: {
+        pk: `transaction#${id}`,
+        sk: `transaction#${createdAt}`,
         ...transaction,
       },
       TableName: this.tableName,
