@@ -1,14 +1,14 @@
 import sinon from "sinon";
 import { expect } from "chai";
 
-import { CurrencyRatesDto } from "../../rates-importer/helpers/to-currency-rates-dto";
+import { CurrencyRatesData } from "../../rates-importer/helpers/to-currency-rates-dto";
 import { calculateExchangeRate } from "./calculate-exchange-rates";
 
 const mockNow = new Date();
 
-const currencyRates: CurrencyRatesDto = {
-  currencyFrom: "USD",
-  createdAt: new Date().toISOString(),
+const currencyRates: CurrencyRatesData = {
+  pk: "currencyRate#USD",
+  sk: `currencyRate#${new Date().toISOString()}`,
   USD: 1.0,
   EUR: 0.85,
   GBP: 0.75,

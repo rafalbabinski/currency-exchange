@@ -36,7 +36,7 @@ const lambdaHandler = async (event: StartTransactionLambdaPayload) => {
 
   const exchangeRate = exchangeRates[currencyTo];
 
-  const currencyToAmount = exchangeRate * currencyFromAmount;
+  const currencyToAmount = Number((exchangeRate * currencyFromAmount).toFixed(2));
 
   const transaction = { ...event.body, currencyToAmount, exchangeRate };
 
