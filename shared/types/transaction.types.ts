@@ -1,1 +1,1 @@
-export type TransactionStatus = "started";
+export type TransactionStatus = "started" | "expired";

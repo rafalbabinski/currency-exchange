@@ -86,6 +86,7 @@ functions:
   - ${file(functions/rates-importer/function.yml)}
   - ${file(functions/get-rates/function.yml)}
   - ${file(functions/start-transaction/function.yml)}
+  - ${file(functions/check-transaction-status/function.yml)}
   # PLOP_ADD_LAMBDA
 
 stepFunctions:

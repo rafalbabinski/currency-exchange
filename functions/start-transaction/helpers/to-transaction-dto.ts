@@ -15,6 +15,12 @@ export interface TransactionDto extends Data {
   status: TransactionStatus;
 }
 
+export interface TransactionData extends Data {
+  pk: string;
+  sk: string;
+  status: TransactionStatus;
+}
+
 export const toTransactionDto = (data: Data): TransactionDto => {
   const createdAt = new Date().toISOString();
 

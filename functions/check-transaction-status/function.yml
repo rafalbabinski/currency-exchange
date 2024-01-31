@@ -1,0 +1,21 @@
+check-transaction-status:
+  handler: functions/check-transaction-status/handler.handle
+  vpc: ${self:custom.vpc}
+  environment:
+    DYNAMODB_CURRENCY_TABLE: ${self:custom.environment.DYNAMODB_CURRENCY_TABLE}
+    TRANSACTION_DEADLINE: ${env:TRANSACTION_DEADLINE}
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - dynamodb:GetItem
+        - dynamodb:PutItem
+      Resource:
+        Fn::GetAtt:
+          - currencyTable
+          - Arn
+  events:
+    - http:
+        path: /check-transaction-status
+        method: GET
+        private: true
+        cors: true
