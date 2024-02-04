@@ -1,24 +1,24 @@
-import { CurrencyRatesDto } from "../../rates-importer/helpers/to-currency-rates-dto";
+import { CurrencyRatesData } from "../../rates-importer/helpers/to-currency-rates-dto";
 
 type CalculateExchangeRateFn = (props: {
-  baseCurrency: string;
-  currencyRates: CurrencyRatesDto;
+  currencyFrom: string;
+  currencyRates: CurrencyRatesData;
 }) => Record<string, number>;
 
-export const calculateExchangeRate: CalculateExchangeRateFn = ({ baseCurrency, currencyRates }) => {
-  if (!(baseCurrency in currencyRates)) {
+export const calculateExchangeRate: CalculateExchangeRateFn = ({ currencyFrom, currencyRates }) => {
+  if (!(currencyFrom in currencyRates)) {
     throw new Error("Invalid new base currency provided");
   }
 
-  const baseRate = Number(currencyRates[baseCurrency]);
+  const baseRate = Number(currencyRates[currencyFrom]);
 
   if (Number.isNaN(baseRate)) {
     throw Error("Invalid exchange rate values");
   }
 
-  const ratesToBeCalculated: Partial<CurrencyRatesDto> = currencyRates;
-  delete ratesToBeCalculated.createdAt;
-  delete ratesToBeCalculated.baseCurrency;
+  const ratesToBeCalculated: Partial<CurrencyRatesData> = currencyRates;
+  delete ratesToBeCalculated.pk;
+  delete ratesToBeCalculated.sk;
 
   const newRates = Object.fromEntries(
     Object.entries(ratesToBeCalculated).map(([currency, defaultRate]) => {

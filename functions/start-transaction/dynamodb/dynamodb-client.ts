@@ -1,27 +1,22 @@
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { PutCommand } from "@aws-sdk/lib-dynamodb";
-import { CurrencyRatesDto } from "../helpers/to-currency-rates-dto";
-import { createDynamoDBClient } from "../../../shared/dynamodb/dynamodb-client-factory";
 
-export class DynamoDbCurrencyClient {
+import { createDynamoDBClient } from "../../../shared/dynamodb/dynamodb-client-factory";
+import { TransactionDto } from "../helpers/to-transaction-dto";
+
+export class DynamoDbTransactionClient {
   private client: DynamoDBClient;
 
   constructor(private tableName: string, private isOffline: boolean) {
     this.client = createDynamoDBClient(this.isOffline);
   }
 
-  async saveCurrencyRates(currencyRates: CurrencyRatesDto): Promise<void> {
-    const { createdAt, currencyFrom, ...rates } = currencyRates;
-
-    const ratesItems = Object.keys(rates).map((currencyCode) => ({
-      [currencyCode]: rates[currencyCode].toString(),
-    }));
-
+  async initTransaction({ id, createdAt, ...transaction }: TransactionDto): Promise<void> {
     const putItemCommand = new PutCommand({
       Item: {
-        pk: `currencyRate#${currencyFrom}`,
-        sk: `currencyRate#${createdAt}`,
-        ...Object.assign({}, ...ratesItems),
+        pk: `transaction#${id}`,
+        sk: `transaction#${createdAt}`,
+        ...transaction,
       },
       TableName: this.tableName,
     });

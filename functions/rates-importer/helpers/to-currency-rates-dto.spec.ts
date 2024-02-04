@@ -25,7 +25,7 @@ describe("toCurrencyRatesDto", () => {
     };
 
     const expectedDto: CurrencyRatesDto = {
-      baseCurrency: "USD",
+      currencyFrom: "USD",
       createdAt: new Date().toISOString(),
       EUR: 0.85,
       GBP: 0.75,

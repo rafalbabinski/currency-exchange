@@ -4,17 +4,17 @@ import { regExp } from "../../shared/utils/reg-exp";
 
 export const getRatesLambdaSchema = z.object({
   queryStringParameters: z.object({
-    baseCurrency: z
+    currencyFrom: z
       .string({
-        required_error: "baseCurrency is required",
+        required_error: "currencyFrom is required",
       })
-      .min(1, "baseCurrency can't be empty")
+      .min(1, "currencyFrom can't be empty")
       .refine(
-        (baseCurrency) => {
-          return new RegExp(regExp.currencyCode).test(baseCurrency);
+        (currencyFrom) => {
+          return new RegExp(regExp.currencyCode).test(currencyFrom);
         },
         {
-          message: "baseCurrency must be valid 3-letter currency code (e.g., PLN, EUR, USD)",
+          message: "currencyFrom must be valid 3-letter currency code (e.g., PLN, EUR, USD)",
         },
       ),
   }),

@@ -2,7 +2,7 @@ import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { QueryCommand } from "@aws-sdk/lib-dynamodb";
 
 import { createDynamoDBClient } from "../../../shared/dynamodb/dynamodb-client-factory";
-import { CurrencyRatesDto } from "../../rates-importer/helpers/to-currency-rates-dto";
+import { CurrencyRatesData } from "../../rates-importer/helpers/to-currency-rates-dto";
 
 export class DynamoDbCurrencyClient {
   private client: DynamoDBClient;
@@ -11,14 +11,14 @@ export class DynamoDbCurrencyClient {
     this.client = createDynamoDBClient(this.isOffline);
   }
 
-  async getCurrencyRates(baseCurrency: string) {
+  async getCurrencyRates(currencyFrom: string) {
     const queryCommand = new QueryCommand({
-      KeyConditionExpression: "#baseCurrency = :baseCurrency",
+      KeyConditionExpression: "#pk = :pk",
       ExpressionAttributeNames: {
-        "#baseCurrency": "baseCurrency",
+        "#pk": "pk",
       },
       ExpressionAttributeValues: {
-        ":baseCurrency": baseCurrency,
+        ":pk": `currencyRate#${currencyFrom}`,
       },
       ScanIndexForward: false,
       Limit: 1,
@@ -27,6 +27,6 @@ export class DynamoDbCurrencyClient {
 
     const { Items } = await this.client.send(queryCommand);
 
-    return Items?.[0] as CurrencyRatesDto;
+    return Items?.[0] as CurrencyRatesData;
   }
 }

@@ -73,6 +73,7 @@ provider:
       - Effect: Allow
         Action:
           - lambda:InvokeFunction
+          - lambda:InvokeAsync
           - states:StartExecution
         Resource:
           - "*"
@@ -84,6 +85,7 @@ functions:
   - ${file(workflows/example-workflow/example-step/function.yml)}
   - ${file(functions/rates-importer/function.yml)}
   - ${file(functions/get-rates/function.yml)}
+  - ${file(functions/start-transaction/function.yml)}
   # PLOP_ADD_LAMBDA
 
 stepFunctions:
@@ -99,13 +101,13 @@ resources:
       Properties:
         TableName: ${env:APP_NAME, 'tshExampleApp'}-${env:DYNAMODB_CURRENCY_TABLE}-${opt:stage, 'local'}
         AttributeDefinitions:
-          - AttributeName: baseCurrency
+          - AttributeName: pk
             AttributeType: S
-          - AttributeName: createdAt
+          - AttributeName: sk
             AttributeType: S
         KeySchema:
-          - AttributeName: baseCurrency
+          - AttributeName: pk
             KeyType: HASH
-          - AttributeName: createdAt
+          - AttributeName: sk
             KeyType: RANGE
         BillingMode: PAY_PER_REQUEST
