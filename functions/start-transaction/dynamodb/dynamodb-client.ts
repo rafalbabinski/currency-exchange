@@ -1,11 +1,10 @@
-import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import { PutCommand } from "@aws-sdk/lib-dynamodb";
+import { DynamoDBDocumentClient, PutCommand } from "@aws-sdk/lib-dynamodb";
 
 import { createDynamoDBClient } from "../../../shared/dynamodb/dynamodb-client-factory";
 import { TransactionDto } from "../helpers/to-transaction-dto";
 
 export class DynamoDbTransactionClient {
-  private client: DynamoDBClient;
+  private client: DynamoDBDocumentClient;
 
   constructor(private tableName: string, private isOffline: boolean) {
     this.client = createDynamoDBClient(this.isOffline);

@@ -31,27 +31,27 @@ const lambdaHandler = async (event: CheckTransactionStatusLambdaPayload) => {
     return awsLambdaResponse(StatusCodes.OK, "No transaction with given id.");
   }
 
-  if (response.status !== "started") {
-    return awsLambdaResponse(StatusCodes.OK, { status: response.status });
+  if (response.transactionStatus !== "started") {
+    return awsLambdaResponse(StatusCodes.OK, { transactionStatus: response.transactionStatus });
   }
 
   const createdAt = response.sk.replace("transaction#", "");
   const createdAtDate = new Date(createdAt);
 
-  const transactionDeadline = addSeconds(createdAtDate, Number(config.transactionDeadline));
+  const transactionDeadline = addSeconds(createdAtDate, 10);
   const currentDate = new Date();
 
   const isLaterThanDeadline = isAfter(currentDate, transactionDeadline);
 
   if (isLaterThanDeadline) {
-    return awsLambdaResponse(StatusCodes.OK, { status: response.status });
+    const newStatus: TransactionStatus = "expired";
+
+    await dynamoDbClient.updateTransactionStatus(response.pk, response.sk, newStatus);
+
+    return awsLambdaResponse(StatusCodes.OK, { transactionStatus: newStatus });
   }
 
-  const newStatus: TransactionStatus = "expired";
-
-  await dynamoDbClient.updateTransactionStatus(id, newStatus);
-
-  return awsLambdaResponse(StatusCodes.OK, { status: newStatus });
+  return awsLambdaResponse(StatusCodes.OK, { transactionStatus: response.transactionStatus });
 };
 
 export const handle = middy()

@@ -12,13 +12,13 @@ export interface Data {
 export interface TransactionDto extends Data {
   id: string;
   createdAt: string;
-  status: TransactionStatus;
+  transactionStatus: TransactionStatus;
 }
 
 export interface TransactionData extends Data {
   pk: string;
   sk: string;
-  status: TransactionStatus;
+  transactionStatus: TransactionStatus;
 }
 
 export const toTransactionDto = (data: Data): TransactionDto => {
@@ -28,6 +28,6 @@ export const toTransactionDto = (data: Data): TransactionDto => {
     id: nanoid(),
     createdAt,
     ...data,
-    status: "started",
+    transactionStatus: "started",
   };
 };

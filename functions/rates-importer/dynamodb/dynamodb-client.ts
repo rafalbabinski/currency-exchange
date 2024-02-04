@@ -1,10 +1,9 @@
-import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import { PutCommand } from "@aws-sdk/lib-dynamodb";
+import { DynamoDBDocumentClient, PutCommand } from "@aws-sdk/lib-dynamodb";
 import { CurrencyRatesDto } from "../helpers/to-currency-rates-dto";
 import { createDynamoDBClient } from "../../../shared/dynamodb/dynamodb-client-factory";
 
 export class DynamoDbCurrencyClient {
-  private client: DynamoDBClient;
+  private client: DynamoDBDocumentClient;
 
   constructor(private tableName: string, private isOffline: boolean) {
     this.client = createDynamoDBClient(this.isOffline);

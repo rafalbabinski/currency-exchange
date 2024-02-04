@@ -1,12 +1,11 @@
-import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import { QueryCommand, UpdateCommand } from "@aws-sdk/lib-dynamodb";
+import { DynamoDBDocumentClient, QueryCommand, UpdateCommand } from "@aws-sdk/lib-dynamodb";
 
 import { createDynamoDBClient } from "../../../shared/dynamodb/dynamodb-client-factory";
 import { TransactionData } from "../../start-transaction/helpers/to-transaction-dto";
 import { TransactionStatus } from "../../../shared/types/transaction.types";
 
 export class DynamoDbTransactionClient {
-  private client: DynamoDBClient;
+  private client: DynamoDBDocumentClient;
 
   constructor(private tableName: string, private isOffline: boolean) {
     this.client = createDynamoDBClient(this.isOffline);
@@ -31,14 +30,15 @@ export class DynamoDbTransactionClient {
     return Items?.[0] as TransactionData;
   }
 
-  async updateTransactionStatus(id: string, status: TransactionStatus): Promise<void> {
+  async updateTransactionStatus(pk: string, sk: string, transactionStatus: TransactionStatus): Promise<void> {
     const updateItemCommand = new UpdateCommand({
       Key: {
-        pk: `transaction#${id}`,
+        pk,
+        sk,
       },
-      UpdateExpression: "set status = :status",
+      UpdateExpression: "set transactionStatus = :transactionStatus",
       ExpressionAttributeValues: {
-        ":status": status,
+        ":transactionStatus": transactionStatus,
       },
       TableName: this.tableName,
     });
