@@ -8,7 +8,6 @@ import { createConfig } from "./config";
 import { inputOutputLoggerConfigured } from "../../shared/middleware/input-output-logger-configured";
 import { StartTransactionLambdaPayload, startTransactionLambdaSchema } from "./event.schema";
 import { zodValidator } from "../../shared/middleware/zod-validator";
-import { queryParser } from "../../shared/middleware/query-parser";
 import { httpCorsConfigured } from "../../shared/middleware/http-cors-configured";
 import { httpErrorHandlerConfigured } from "../../shared/middleware/http-error-handler-configured";
 import { DynamoDbTransactionClient } from "./dynamodb/dynamodb-client";
@@ -46,7 +45,7 @@ const lambdaHandler = async (event: StartTransactionLambdaPayload) => {
 
   return awsLambdaResponse(StatusCodes.OK, {
     success: true,
-    ...mappedTransaction,
+    data: mappedTransaction,
   });
 };
 
@@ -56,7 +55,6 @@ export const handle = middy()
   .use(httpEventNormalizer())
   .use(httpHeaderNormalizer())
   .use(httpCorsConfigured)
-  .use(queryParser())
   .use(zodValidator(startTransactionLambdaSchema))
   .use(httpErrorHandlerConfigured)
   .handler(lambdaHandler);
