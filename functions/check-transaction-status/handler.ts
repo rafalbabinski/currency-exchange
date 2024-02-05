@@ -3,7 +3,7 @@ import httpEventNormalizer from "@middy/http-event-normalizer";
 import httpHeaderNormalizer from "@middy/http-header-normalizer";
 import jsonBodyParser from "@middy/http-json-body-parser";
 import { StatusCodes } from "http-status-codes";
-import { addSeconds, isAfter } from "date-fns";
+import { DateTime } from "luxon";
 
 import { awsLambdaResponse } from "../../shared/aws";
 import { createConfig } from "./config";
@@ -36,12 +36,12 @@ const lambdaHandler = async (event: CheckTransactionStatusLambdaPayload) => {
   }
 
   const createdAt = response.sk.replace("transaction#", "");
-  const createdAtDate = new Date(createdAt);
+  const createdAtDate = DateTime.fromISO(createdAt);
 
-  const transactionDeadline = addSeconds(createdAtDate, 10);
-  const currentDate = new Date();
+  const transactionDeadline = createdAtDate.plus(Number(config.transactionDeadline));
+  const currentDate = DateTime.now();
 
-  const isLaterThanDeadline = isAfter(currentDate, transactionDeadline);
+  const isLaterThanDeadline = transactionDeadline > currentDate;
 
   if (isLaterThanDeadline) {
     const newStatus: TransactionStatus = "expired";
