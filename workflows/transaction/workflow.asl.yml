@@ -1,0 +1,17 @@
+Comment: "Transaction Workflow"
+StartAt: startTransactionStep
+States:
+  startTransactionStep:
+    Type: Task
+    Resource: !GetAtt start-transaction-lambda.Arn
+    TimeoutSeconds: 28
+    Next: checkTransactionStatusStep
+  checkTransactionStatusStep:
+    Type: Task
+    Resource: !GetAtt check-transaction-status-lambda.Arn
+    TimeoutSeconds: 28
+    End: true
+  # PLOP_ADD_WORKFLOW_STEP
+
+
+
