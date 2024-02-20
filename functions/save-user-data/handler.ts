@@ -2,46 +2,53 @@ import middy from "@middy/core";
 import httpEventNormalizer from "@middy/http-event-normalizer";
 import httpHeaderNormalizer from "@middy/http-header-normalizer";
 import jsonBodyParser from "@middy/http-json-body-parser";
-import { nanoid } from "nanoid";
+
 import { StatusCodes } from "http-status-codes";
-import { StartExecutionCommand, StartExecutionCommandInput } from "@aws-sdk/client-sfn";
 import { awsLambdaResponse } from "../../shared/aws";
 import { inputOutputLoggerConfigured } from "../../shared/middleware/input-output-logger-configured";
+import { SaveUserDataLambdaPayload, saveUserDataLambdaSchema } from "./event.schema";
 import { zodValidator } from "../../shared/middleware/zod-validator";
+import { queryParser } from "../../shared/middleware/query-parser";
 import { httpCorsConfigured } from "../../shared/middleware/http-cors-configured";
 import { httpErrorHandlerConfigured } from "../../shared/middleware/http-error-handler-configured";
 import { createStepFunctionsClient } from "../../shared/step-functions/step-functions-client-factory";
-import { TransactionStatus } from "../../shared/types/transaction.types";
-import { StartTransactionLambdaPayload, startTransactionLambdaSchema } from "./event.schema";
+import { SendTaskSuccessCommand, SendTaskSuccessInput } from "@aws-sdk/client-sfn";
+import { DynamoDbTransactionClient } from "../check-transaction-status/dynamodb/dynamodb-client";
 import { createConfig } from "./config";
 
 const isOffline = process.env.IS_OFFLINE === "true";
 
 const config = createConfig(process.env);
 
-const lambdaHandler = async (event: StartTransactionLambdaPayload) => {
+const dynamoDbClient = new DynamoDbTransactionClient(config.dynamoDBCurrencyTable, isOffline);
+
+const lambdaHandler = async (event: SaveUserDataLambdaPayload) => {
+  const { id } = event.pathParameters;
+
+  const response = await dynamoDbClient.getTransaction(id);
+
+  if (!response) {
+    return awsLambdaResponse(StatusCodes.OK, "No transaction with given id.");
+  }
+
   const client = createStepFunctionsClient(isOffline);
 
-  const transactionId = nanoid();
-
-  const input: StartExecutionCommandInput = {
-    stateMachineArn: isOffline ? config.stateMachineArnOffline : config.stateMachineArn,
-    input: JSON.stringify({
-      transactionId,
-      body: {
-        ...event.body,
+  const input: SendTaskSuccessInput = {
+    taskToken: response.taskToken,
+    output: JSON.stringify({
+      Payload: {
+        transactionId: response.transactionId,
+        body: event.body,
       },
     }),
   };
 
-  const command = new StartExecutionCommand(input);
+  const command = new SendTaskSuccessCommand(input);
 
   client.send(command);
 
   return awsLambdaResponse(StatusCodes.OK, {
     success: true,
-    transactionId,
-    status: TransactionStatus.Pending,
   });
 };
 
@@ -51,6 +58,7 @@ export const handle = middy()
   .use(httpEventNormalizer())
   .use(httpHeaderNormalizer())
   .use(httpCorsConfigured)
-  .use(zodValidator(startTransactionLambdaSchema))
+  .use(queryParser())
+  .use(zodValidator(saveUserDataLambdaSchema))
   .use(httpErrorHandlerConfigured)
   .handler(lambdaHandler);

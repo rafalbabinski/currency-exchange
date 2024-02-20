@@ -1,0 +1,2 @@
+save-user-data-step-lambda:
+  handler: workflows/transaction-workflow/save-user-data-step/handler.handle

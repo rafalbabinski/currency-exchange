@@ -3,7 +3,22 @@ StartAt: startTransactionStep
 States:
   startTransactionStep:
     Type: Task
-    Resource: !GetAtt start-transaction-lambda.Arn
+    Resource: 'arn:aws:states:::lambda:invoke.waitForTaskToken'
+    Parameters:
+      FunctionName: !GetAtt start-transaction-lambda.Arn
+      Payload:
+        taskToken.$: "$$.Task.Token"
+        transactionId.$: "$.transactionId"
+        body:
+          currencyFrom.$: "$.body.currencyFrom"
+          currencyTo.$: "$.body.currencyTo"
+          currencyFromAmount.$: "$.body.currencyFromAmount"
+    TimeoutSeconds: 600
+    Next: saveUserDataStepStep
+  saveUserDataStepStep:
+    Type: Task
+    Resource: !GetAtt save-user-data-step-lambda.Arn
     TimeoutSeconds: 600
     End: true
   # PLOP_ADD_WORKFLOW_STEP
+

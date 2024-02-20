@@ -2,6 +2,7 @@ import { TransactionStatus } from "../../../../shared/types/transaction.types";
 
 export interface Data {
   transactionId: string;
+  taskToken: string;
   currencyFrom: string;
   currencyFromAmount: number;
   currencyTo: string;

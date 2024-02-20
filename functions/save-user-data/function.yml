@@ -1,0 +1,17 @@
+save-user-data:
+  handler: functions/save-user-data/handler.handle
+  vpc: ${self:custom.vpc}
+  environment:
+    DYNAMODB_CURRENCY_TABLE: ${self:custom.environment.DYNAMODB_CURRENCY_TABLE}
+    STATE_MACHINE_ARN: ${self:custom.stepFunctionsLocal.TaskResourceMapping.startTransactionStep}
+    STATE_MACHINE_ARN_OFFLINE: arn:aws:states:${self:custom.stepFunctionsLocal.region}:${self:custom.stepFunctionsLocal.accountId}:stateMachine:TransactionWorkflow${env:APP_NAME}${opt:stage}
+  events:
+    - http:
+        path: /save-user-data/{id}
+        method: POST
+        private: true
+        cors: true
+        request: 
+            parameters: 
+              paths: 
+                id: true
