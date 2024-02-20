@@ -1,7 +1,7 @@
 import { DynamoDBDocumentClient, QueryCommand, UpdateCommand } from "@aws-sdk/lib-dynamodb";
 
 import { createDynamoDBClient } from "../../../shared/dynamodb/dynamodb-client-factory";
-import { TransactionData } from "../../start-transaction/helpers/to-transaction-dto";
+import { TransactionData } from "../../../workflows/transaction-workflow/start-transaction-step/helpers/to-transaction-dto";
 import { TransactionStatus } from "../../../shared/types/transaction.types";
 
 export class DynamoDbTransactionClient {

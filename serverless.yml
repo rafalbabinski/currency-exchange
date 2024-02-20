@@ -29,8 +29,7 @@ custom:
     region: us-east-1
     stepFunctionsEndpoint: http://127.0.0.1:8083
     TaskResourceMapping:
-      startTransactionStep: arn:aws:lambda:us-east-1:101010101010:function:${env:APP_NAME, 'tshExampleApp'}-${opt:stage, 'dev'}-start-transaction-lambda
-      checkTransactionStatusStep: arn:aws:lambda:us-east-1:101010101010:function:${env:APP_NAME, 'tshExampleApp'}-${opt:stage, 'dev'}-check-transaction-status-lambda
+      startTransactionStep: arn:aws:lambda:us-east-1:101010101010:function:${env:APP_NAME, 'tshExampleApp'}-${opt:stage, 'dev'}-start-transaction-step-lambda
       # PLOP_ADD_WORKFLOW_STEP_LOCAL_STEP
   dynamodb:
     stages:
@@ -87,20 +86,18 @@ functions:
   - ${file(functions/get-rates/function.yml)}
   - ${file(functions/start-transaction/function.yml)}
   - ${file(functions/check-transaction-status/function.yml)}
-  - ${file(workflows/transaction/start-transaction/function.yml)}
-  - ${file(workflows/transaction/check-transaction-status/function.yml)}
+  - ${file(workflows/transaction-workflow/start-transaction-step/function.yml)}
   # PLOP_ADD_LAMBDA
 
 stepFunctions:
   stateMachines:
-    TransactionWorkflow: ${file(workflows/transaction/workflow.yml)}
+    TransactionWorkflow: ${file(workflows/transaction-workflow/workflow.yml)}
   # PLOP_ADD_WORKFLOW_STATE_MACHINE
 
 resources:
   Outputs:
-
     TransactionWorkflowStateMachine:
-      Description: Transaction state machine Arn
+      Description: Transaction workflow state machine Arn
       Value:
         Ref: TransactionWorkflow${self:service}${opt:stage, 'dev'}
     # PLOP_ADD_WORKFLOW_RESOURCE

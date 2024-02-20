@@ -1,2 +1,0 @@
-name: TransactionWorkflow${self:service}${opt:stage, 'dev'}
-definition: ${file(./workflows/transaction/workflow.asl.yml)}

@@ -2,14 +2,14 @@ import { z } from "zod";
 import { pipeline } from "ts-pipe-compose";
 
 const loadEnvs = (env: any) => ({
-  stateMachineArn: env.STATE_MACHINE_ARN,
-  stateMachineArnOffline: env.STATE_MACHINE_ARN_OFFLINE,
+  appName: env.APP_NAME,
+  dynamoDBCurrencyTable: env.DYNAMODB_CURRENCY_TABLE,
 });
 
 const validateConfig = (config: any) => {
   const schema = z.object({
-    stateMachineArn: z.string().min(1),
-    stateMachineArnOffline: z.string().min(1),
+    appName: z.string().min(1),
+    dynamoDBCurrencyTable: z.string().min(1),
   });
 
   try {

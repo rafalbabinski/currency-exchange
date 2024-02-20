@@ -6,7 +6,6 @@ import { StatusCodes } from "http-status-codes";
 import { DateTime } from "luxon";
 
 import { awsLambdaResponse } from "../../shared/aws";
-import { createConfig } from "./config";
 import { inputOutputLoggerConfigured } from "../../shared/middleware/input-output-logger-configured";
 import { CheckTransactionStatusLambdaPayload, checkTransactionStatusLambdaSchema } from "./event.schema";
 import { zodValidator } from "../../shared/middleware/zod-validator";
@@ -15,6 +14,7 @@ import { httpCorsConfigured } from "../../shared/middleware/http-cors-configured
 import { DynamoDbTransactionClient } from "./dynamodb/dynamodb-client";
 import { httpErrorHandlerConfigured } from "../../shared/middleware/http-error-handler-configured";
 import { TransactionStatus } from "../../shared/types/transaction.types";
+import { createConfig } from "./config";
 
 const isOffline = process.env.IS_OFFLINE === "true";
 
@@ -41,10 +41,10 @@ const lambdaHandler = async (event: CheckTransactionStatusLambdaPayload) => {
   const transactionDeadline = createdAtDate.plus(Number(config.transactionDeadline));
   const currentDate = DateTime.now();
 
-  const isLaterThanDeadline = transactionDeadline > currentDate;
+  const isLaterThanDeadline = currentDate > transactionDeadline;
 
   if (isLaterThanDeadline) {
-    const newStatus: TransactionStatus = "expired";
+    const newStatus = TransactionStatus.expired;
 
     await dynamoDbClient.updateTransactionStatus(response.pk, response.sk, newStatus);
 

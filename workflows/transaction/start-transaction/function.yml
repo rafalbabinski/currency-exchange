@@ -1,2 +1,0 @@
-start-transaction-lambda:
-  handler: workflows/transaction/start-transaction/handler.handle

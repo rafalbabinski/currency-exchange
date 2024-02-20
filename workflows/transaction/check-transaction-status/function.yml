@@ -1,2 +1,0 @@
-check-transaction-status-lambda:
-  handler: workflows/transaction/check-transaction-status/handler.handle

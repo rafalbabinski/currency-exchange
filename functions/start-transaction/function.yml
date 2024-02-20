@@ -2,19 +2,8 @@ start-transaction:
   handler: functions/start-transaction/handler.handle
   vpc: ${self:custom.vpc}
   environment:
-    DYNAMODB_CURRENCY_TABLE: ${self:custom.environment.DYNAMODB_CURRENCY_TABLE}
-    CURRENCY_AVAILABLE: ${env:CURRENCY_AVAILABLE}
-    CURRENCY_SCOPE: ${env:CURRENCY_SCOPE}
-    BASE_CURRENCY: ${env:BASE_CURRENCY}
-  iamRoleStatements:
-    - Effect: Allow
-      Action:
-        - dynamodb:GetItem
-        - dynamodb:PutItem
-      Resource:
-        Fn::GetAtt:
-          - currencyTable
-          - Arn
+    STATE_MACHINE_ARN: ${self:custom.stepFunctionsLocal.TaskResourceMapping.startTransactionStep}
+    STATE_MACHINE_ARN_OFFLINE: arn:aws:states:${self:custom.stepFunctionsLocal.region}:${self:custom.stepFunctionsLocal.accountId}:stateMachine:TransactionWorkflow${env:APP_NAME}${opt:stage}
   events:
     - http:
         path: /start-transaction

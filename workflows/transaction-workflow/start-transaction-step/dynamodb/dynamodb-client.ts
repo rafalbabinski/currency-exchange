@@ -1,6 +1,6 @@
 import { DynamoDBDocumentClient, PutCommand } from "@aws-sdk/lib-dynamodb";
 
-import { createDynamoDBClient } from "../../../shared/dynamodb/dynamodb-client-factory";
+import { createDynamoDBClient } from "../../../../shared/dynamodb/dynamodb-client-factory";
 import { TransactionDto } from "../helpers/to-transaction-dto";
 
 export class DynamoDbTransactionClient {
@@ -10,10 +10,10 @@ export class DynamoDbTransactionClient {
     this.client = createDynamoDBClient(this.isOffline);
   }
 
-  async initTransaction({ id, createdAt, ...transaction }: TransactionDto): Promise<void> {
+  async initTransaction({ transactionId, createdAt, ...transaction }: TransactionDto): Promise<void> {
     const putItemCommand = new PutCommand({
       Item: {
-        pk: `transaction#${id}`,
+        pk: `transaction#${transactionId}`,
         sk: `transaction#${createdAt}`,
         ...transaction,
       },
