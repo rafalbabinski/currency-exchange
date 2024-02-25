@@ -15,7 +15,11 @@ check-transaction-status:
           - Arn
   events:
     - http:
-        path: /check-transaction-status
+        path: /transaction/{id}/status
         method: GET
         private: true
         cors: true
+        request: 
+            parameters: 
+              paths: 
+                id: true

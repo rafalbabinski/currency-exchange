@@ -2,6 +2,7 @@ import httpEventNormalizer from "@middy/http-event-normalizer";
 import httpHeaderNormalizer from "@middy/http-header-normalizer";
 import jsonBodyParser from "@middy/http-json-body-parser";
 import middy from "@middy/core";
+
 import { awsLambdaResponse } from "../../shared/aws";
 import { winstonLogger } from "../../shared/logger";
 import { StatusCodes } from "http-status-codes";
@@ -10,6 +11,7 @@ import { inputOutputLoggerConfigured } from "../../shared/middleware/input-outpu
 import { queryParser } from "../../shared/middleware/query-parser";
 import { httpCorsConfigured } from "../../shared/middleware/http-cors-configured";
 import { httpErrorHandlerConfigured } from "../../shared/middleware/http-error-handler-configured";
+import { errorLambdaResponse } from "../../shared/middleware/error-lambda-response";
 
 const config = createConfig(process.env);
 
@@ -42,4 +44,5 @@ export const handle = middy()
   .use(httpCorsConfigured)
   .use(queryParser())
   .use(httpErrorHandlerConfigured)
+  .use(errorLambdaResponse)
   .handler(lambdaHandler);

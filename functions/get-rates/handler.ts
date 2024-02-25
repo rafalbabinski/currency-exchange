@@ -7,6 +7,7 @@ import { awsLambdaResponse } from "../../shared/aws";
 import { inputOutputLoggerConfigured } from "../../shared/middleware/input-output-logger-configured";
 import { httpCorsConfigured } from "../../shared/middleware/http-cors-configured";
 import { httpErrorHandlerConfigured } from "../../shared/middleware/http-error-handler-configured";
+import { errorLambdaResponse } from "../../shared/middleware/error-lambda-response";
 import { queryParser } from "../../shared/middleware/query-parser";
 import { zodValidator } from "../../shared/middleware/zod-validator";
 import { calculateExchangeRate } from "./helpers/calculate-exchange-rates";
@@ -34,7 +35,6 @@ const lambdaHandler = async (event: GetRatesLambdaPayload) => {
 
   return awsLambdaResponse(StatusCodes.OK, {
     success: true,
-    currencyFrom: event.queryStringParameters.currencyFrom,
     results: exchangeRates,
   });
 };
@@ -47,4 +47,5 @@ export const handle = middy()
   .use(queryParser())
   .use(zodValidator(getRatesLambdaSchema))
   .use(httpErrorHandlerConfigured)
+  .use(errorLambdaResponse)
   .handler(lambdaHandler);
