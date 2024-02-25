@@ -33,9 +33,9 @@
     "prepare": "husky install"
   },
   "dependencies": {
-    "@aws-sdk/client-dynamodb": "^3.450.0",
-    "@aws-sdk/client-sfn": "^3.515.0",
-    "@aws-sdk/lib-dynamodb": "^3.450.0",
+    "@aws-sdk/client-dynamodb": "3.450.0",
+    "@aws-sdk/client-sfn": "3.515.0",
+    "@aws-sdk/lib-dynamodb": "3.450.0",
     "@middy/core": "^4.6.0",
     "@middy/http-cors": "^4.6.0",
     "@middy/http-error-handler": "^4.6.0",
