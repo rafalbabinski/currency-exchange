@@ -28,9 +28,7 @@ const lambdaHandler = async (event: StartTransactionLambdaPayload) => {
     stateMachineArn: isOffline ? config.stateMachineArnOffline : config.stateMachineArn,
     input: JSON.stringify({
       transactionId,
-      body: {
-        ...event.body,
-      },
+      body: event.body,
     }),
   };
 

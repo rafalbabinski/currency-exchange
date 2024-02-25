@@ -36,10 +36,8 @@ const lambdaHandler = async (event: SaveUserDataLambdaPayload) => {
   const input: SendTaskSuccessInput = {
     taskToken: response.taskToken,
     output: JSON.stringify({
-      Payload: {
-        transactionId: response.transactionId,
-        body: event.body,
-      },
+      transactionId: id,
+      body: event.body,
     }),
   };
 

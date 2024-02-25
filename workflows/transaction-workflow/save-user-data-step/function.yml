@@ -1,2 +1,15 @@
 save-user-data-step-lambda:
   handler: workflows/transaction-workflow/save-user-data-step/handler.handle
+  vpc: ${self:custom.vpc}
+  environment:
+    DYNAMODB_CURRENCY_TABLE: ${self:custom.environment.DYNAMODB_CURRENCY_TABLE}
+    TRANSACTION_DEADLINE: ${env:TRANSACTION_DEADLINE}
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - dynamodb:GetItem
+        - dynamodb:PutItem
+      Resource:
+        Fn::GetAtt:
+          - currencyTable
+          - Arn
