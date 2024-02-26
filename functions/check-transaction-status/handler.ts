@@ -47,7 +47,7 @@ const lambdaHandler = async (event: CheckTransactionStatusLambdaPayload) => {
   const isLaterThanDeadline = currentDate > transactionDeadline;
 
   if (isLaterThanDeadline) {
-    const newStatus = TransactionStatus.expired;
+    const newStatus = TransactionStatus.Expired;
 
     await dynamoDbClient.updateTransactionStatus(response.pk, response.sk, newStatus);
 
