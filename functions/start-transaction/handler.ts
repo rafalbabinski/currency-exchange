@@ -2,6 +2,7 @@ import middy from "@middy/core";
 import httpEventNormalizer from "@middy/http-event-normalizer";
 import httpHeaderNormalizer from "@middy/http-header-normalizer";
 import jsonBodyParser from "@middy/http-json-body-parser";
+
 import { nanoid } from "nanoid";
 import { StatusCodes } from "http-status-codes";
 import { StartExecutionCommand, StartExecutionCommandInput } from "@aws-sdk/client-sfn";
@@ -10,16 +11,26 @@ import { inputOutputLoggerConfigured } from "../../shared/middleware/input-outpu
 import { zodValidator } from "../../shared/middleware/zod-validator";
 import { httpCorsConfigured } from "../../shared/middleware/http-cors-configured";
 import { httpErrorHandlerConfigured } from "../../shared/middleware/http-error-handler-configured";
+import { errorLambdaResponse } from "../../shared/middleware/error-lambda-response";
 import { createStepFunctionsClient } from "../../shared/step-functions/step-functions-client-factory";
 import { TransactionStatus } from "../../shared/types/transaction.types";
 import { StartTransactionLambdaPayload, startTransactionLambdaSchema } from "./event.schema";
 import { createConfig } from "./config";
+import { DynamoDbCurrencyClient } from "../get-rates/dynamodb/dynamodb-client";
 
 const isOffline = process.env.IS_OFFLINE === "true";
 
 const config = createConfig(process.env);
 
+const dynamoDbCurrencyClient = new DynamoDbCurrencyClient(config.dynamoDBCurrencyTable, isOffline);
+
 const lambdaHandler = async (event: StartTransactionLambdaPayload) => {
+  const currencyRates = await dynamoDbCurrencyClient.getCurrencyRates(event.body.currencyFrom);
+
+  if (!currencyRates) {
+    throw Error("No currency rates available");
+  }
+
   const client = createStepFunctionsClient(isOffline);
 
   const transactionId = nanoid();
@@ -51,4 +62,5 @@ export const handle = middy()
   .use(httpCorsConfigured)
   .use(zodValidator(startTransactionLambdaSchema))
   .use(httpErrorHandlerConfigured)
+  .use(errorLambdaResponse)
   .handler(lambdaHandler);

@@ -7,7 +7,7 @@ save-user-data:
     STATE_MACHINE_ARN_OFFLINE: arn:aws:states:${self:custom.stepFunctionsLocal.region}:${self:custom.stepFunctionsLocal.accountId}:stateMachine:TransactionWorkflow${env:APP_NAME}${opt:stage}
   events:
     - http:
-        path: /save-user-data/{id}
+        path: /transaction/{id}/save-user-data
         method: POST
         private: true
         cors: true

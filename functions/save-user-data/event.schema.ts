@@ -30,8 +30,9 @@ export const saveUserDataLambdaSchema = z.object({
       .string({
         required_error: "zipCode is required",
       })
-      .min(1, "zipCode can't be empty")
-      .max(64, "zipCode can have maximum of 64 characters"),
+      .refine((value) => /^(\\d{2}-\\d{3}|\\d{5}|\\d{2} \\d{3})$/.test(value), {
+        message: "zipCode must be in one of the following formats: XX-XXX, XXXXX, XX XXX",
+      }),
     email: z
       .string({
         required_error: "email is required",

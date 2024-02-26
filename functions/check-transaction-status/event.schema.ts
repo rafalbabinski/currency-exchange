@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 export const checkTransactionStatusLambdaSchema = z.object({
-  queryStringParameters: z.object({
+  pathParameters: z.object({
     id: z
       .string({
         required_error: "id is required",

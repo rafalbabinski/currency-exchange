@@ -13,6 +13,7 @@ import { queryParser } from "../../shared/middleware/query-parser";
 import { httpCorsConfigured } from "../../shared/middleware/http-cors-configured";
 import { DynamoDbTransactionClient } from "./dynamodb/dynamodb-client";
 import { httpErrorHandlerConfigured } from "../../shared/middleware/http-error-handler-configured";
+import { errorLambdaResponse } from "../../shared/middleware/error-lambda-response";
 import { TransactionStatus } from "../../shared/types/transaction.types";
 import { createConfig } from "./config";
 
@@ -23,16 +24,18 @@ const config = createConfig(process.env);
 const dynamoDbClient = new DynamoDbTransactionClient(config.dynamoDBCurrencyTable, isOffline);
 
 const lambdaHandler = async (event: CheckTransactionStatusLambdaPayload) => {
-  const { id } = event.queryStringParameters;
+  const { id } = event.pathParameters;
 
   const response = await dynamoDbClient.getTransaction(id);
 
   if (!response) {
-    return awsLambdaResponse(StatusCodes.OK, "No transaction with given id.");
+    return awsLambdaResponse(StatusCodes.NOT_FOUND, {
+      error: "No transaction with given id",
+    });
   }
 
   if (response.transactionStatus !== "started") {
-    return awsLambdaResponse(StatusCodes.OK, { transactionStatus: response.transactionStatus });
+    return awsLambdaResponse(StatusCodes.OK, { success: true, transactionStatus: response.transactionStatus });
   }
 
   const createdAt = response.sk.replace("transaction#", "");
@@ -48,10 +51,10 @@ const lambdaHandler = async (event: CheckTransactionStatusLambdaPayload) => {
 
     await dynamoDbClient.updateTransactionStatus(response.pk, response.sk, newStatus);
 
-    return awsLambdaResponse(StatusCodes.OK, { transactionStatus: newStatus });
+    return awsLambdaResponse(StatusCodes.OK, { success: true, transactionStatus: newStatus });
   }
 
-  return awsLambdaResponse(StatusCodes.OK, { transactionStatus: response.transactionStatus });
+  return awsLambdaResponse(StatusCodes.OK, { success: true, transactionStatus: response.transactionStatus });
 };
 
 export const handle = middy()
@@ -63,4 +66,5 @@ export const handle = middy()
   .use(queryParser())
   .use(zodValidator(checkTransactionStatusLambdaSchema))
   .use(httpErrorHandlerConfigured)
+  .use(errorLambdaResponse)
   .handler(lambdaHandler);

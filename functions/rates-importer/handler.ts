@@ -1,4 +1,5 @@
 import middy from "@middy/core";
+
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import { StatusCodes } from "http-status-codes";
 import { awsLambdaResponse } from "../../shared/aws";

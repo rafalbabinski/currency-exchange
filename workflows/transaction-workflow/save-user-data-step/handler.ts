@@ -32,8 +32,6 @@ export const handle = async (event: SaveUserDataStepLambdaPayload, _context: Con
     const newStatus = TransactionStatus.expired;
 
     await dynamoDbClient.updateTransactionStatus(response.pk, response.sk, newStatus);
-
-    return "Transaction has expired";
   }
 
   await dynamoDbClient.updateTransactionUserData(response.pk, response.sk, event.body);

@@ -13,7 +13,7 @@ States:
           currencyFrom.$: "$.body.currencyFrom"
           currencyTo.$: "$.body.currencyTo"
           currencyFromAmount.$: "$.body.currencyFromAmount"
-    TimeoutSeconds: 60
+    TimeoutSeconds: 600
     Next: saveUserDataStepStep
   saveUserDataStepStep:
     Type: Task
@@ -30,7 +30,7 @@ States:
           street.$: "$.body.street"
           zipCode.$: "$.body.zipCode"
           email.$: "$.body.email"
-    TimeoutSeconds: 60
+    TimeoutSeconds: 600
     End: true
   # PLOP_ADD_WORKFLOW_STEP
 

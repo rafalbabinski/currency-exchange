@@ -11,6 +11,7 @@ import { zodValidator } from "../../shared/middleware/zod-validator";
 import { queryParser } from "../../shared/middleware/query-parser";
 import { httpCorsConfigured } from "../../shared/middleware/http-cors-configured";
 import { httpErrorHandlerConfigured } from "../../shared/middleware/http-error-handler-configured";
+import { errorLambdaResponse } from "../../shared/middleware/error-lambda-response";
 import { createStepFunctionsClient } from "../../shared/step-functions/step-functions-client-factory";
 import { SendTaskSuccessCommand, SendTaskSuccessInput } from "@aws-sdk/client-sfn";
 import { DynamoDbTransactionClient } from "../check-transaction-status/dynamodb/dynamodb-client";
@@ -28,7 +29,9 @@ const lambdaHandler = async (event: SaveUserDataLambdaPayload) => {
   const response = await dynamoDbClient.getTransaction(id);
 
   if (!response) {
-    return awsLambdaResponse(StatusCodes.OK, "No transaction with given id.");
+    return awsLambdaResponse(StatusCodes.NOT_FOUND, {
+      error: "No transaction with given id",
+    });
   }
 
   const client = createStepFunctionsClient(isOffline);
@@ -59,4 +62,5 @@ export const handle = middy()
   .use(queryParser())
   .use(zodValidator(saveUserDataLambdaSchema))
   .use(httpErrorHandlerConfigured)
+  .use(errorLambdaResponse)
   .handler(lambdaHandler);
