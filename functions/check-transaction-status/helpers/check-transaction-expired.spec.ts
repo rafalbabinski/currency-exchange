@@ -21,7 +21,7 @@ describe("checkTransactionExpired", () => {
 
     const result = checkTransactionExpired({ createdAt, timeToCompleteTransaction });
 
-    expect(result).to.deep.be.true;
+    expect(result).to.be.equal(true);
   });
 
   it("should return false if the transaction is not expired", () => {
@@ -29,7 +29,7 @@ describe("checkTransactionExpired", () => {
 
     const result = checkTransactionExpired({ createdAt, timeToCompleteTransaction });
 
-    expect(result).deep.be.false;
+    expect(result).to.be.equal(false);
   });
 
   it("should throw an error if the createdAt date format is invalid", () => {
