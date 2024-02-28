@@ -3,7 +3,6 @@ import httpEventNormalizer from "@middy/http-event-normalizer";
 import httpHeaderNormalizer from "@middy/http-header-normalizer";
 import jsonBodyParser from "@middy/http-json-body-parser";
 import { StatusCodes } from "http-status-codes";
-import { DateTime } from "luxon";
 
 import { awsLambdaResponse } from "../../shared/aws";
 import { inputOutputLoggerConfigured } from "../../shared/middleware/input-output-logger-configured";
@@ -16,6 +15,7 @@ import { httpErrorHandlerConfigured } from "../../shared/middleware/http-error-h
 import { errorLambdaResponse } from "../../shared/middleware/error-lambda-response";
 import { TransactionStatus } from "../../shared/types/transaction.types";
 import { createConfig } from "./config";
+import { checkTransactionExpired } from "./helpers/check-transaction-expired";
 
 const isOffline = process.env.IS_OFFLINE === "true";
 
@@ -39,14 +39,13 @@ const lambdaHandler = async (event: CheckTransactionStatusLambdaPayload) => {
   }
 
   const createdAt = response.sk.replace("transaction#", "");
-  const createdAtDate = DateTime.fromISO(createdAt);
 
-  const transactionDeadline = createdAtDate.plus(Number(config.transactionDeadline));
-  const currentDate = DateTime.now();
+  const hasTransactionExpired = checkTransactionExpired({
+    createdAt,
+    timeToCompleteTransaction: Number(config.timeToCompleteTransaction),
+  });
 
-  const isLaterThanDeadline = currentDate > transactionDeadline;
-
-  if (isLaterThanDeadline) {
+  if (hasTransactionExpired) {
     const newStatus = TransactionStatus.Expired;
 
     await dynamoDbClient.updateTransactionStatus(response.pk, response.sk, newStatus);
