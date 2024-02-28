@@ -2,16 +2,14 @@ import { z } from "zod";
 import { pipeline } from "ts-pipe-compose";
 
 const loadEnvs = (env: any) => ({
-  appName: env.APP_NAME,
   dynamoDBCurrencyTable: env.DYNAMODB_CURRENCY_TABLE,
-  transactionDeadline: env.TRANSACTION_DEADLINE,
+  timeToCompleteTransaction: env.TIME_TO_COMPLETE_TRANSACTION,
 });
 
 const validateConfig = (config: any) => {
   const schema = z.object({
-    appName: z.string().min(1),
     dynamoDBCurrencyTable: z.string().min(1),
-    transactionDeadline: z.string().min(1),
+    timeToCompleteTransaction: z.string().min(1),
   });
 
   try {
