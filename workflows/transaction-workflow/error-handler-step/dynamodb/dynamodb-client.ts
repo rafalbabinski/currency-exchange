@@ -30,15 +30,30 @@ export class DynamoDbTransactionClient {
     return Items?.[0] as TransactionData;
   }
 
-  async updateTransactionStatus(pk: string, sk: string, transactionStatus: TransactionStatus): Promise<void> {
+  async updateTransactionStatus(
+    pk: string,
+    sk: string,
+    {
+      transactionStatus,
+      updatedAt,
+      error,
+    }: {
+      transactionStatus: TransactionStatus;
+      updatedAt: string;
+      error: string | null;
+    },
+  ): Promise<void> {
     const updateItemCommand = new UpdateCommand({
       Key: {
         pk,
         sk,
       },
-      UpdateExpression: "set transactionStatus = :transactionStatus",
+      UpdateExpression:
+        "set transactionStatus = :transactionStatus, updatedAt = :updatedAt, errorReason = :errorReason",
       ExpressionAttributeValues: {
         ":transactionStatus": transactionStatus,
+        ":updatedAt": updatedAt,
+        ":errorReason": error,
       },
       TableName: this.tableName,
     });

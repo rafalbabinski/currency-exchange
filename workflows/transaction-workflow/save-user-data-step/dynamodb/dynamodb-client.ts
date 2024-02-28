@@ -31,15 +31,20 @@ export class DynamoDbTransactionClient {
     return Items?.[0] as TransactionData;
   }
 
-  async updateTransactionStatus(pk: string, sk: string, transactionStatus: TransactionStatus): Promise<void> {
+  async updateTransactionStatus(
+    pk: string,
+    sk: string,
+    { transactionStatus, updatedAt }: { transactionStatus: TransactionStatus; updatedAt: string },
+  ): Promise<void> {
     const updateItemCommand = new UpdateCommand({
       Key: {
         pk,
         sk,
       },
-      UpdateExpression: "set transactionStatus = :transactionStatus",
+      UpdateExpression: "set transactionStatus = :transactionStatus, updatedAt = :updatedAt",
       ExpressionAttributeValues: {
         ":transactionStatus": transactionStatus,
+        ":updatedAt": updatedAt,
       },
       TableName: this.tableName,
     });
@@ -50,7 +55,15 @@ export class DynamoDbTransactionClient {
   async updateTransactionUserData(
     pk: string,
     sk: string,
-    { firstName, lastName, city, zipCode, email }: SaveUserDataLambdaPayload["body"],
+    {
+      firstName,
+      lastName,
+      city,
+      zipCode,
+      email,
+      transactionStatus,
+      updatedAt,
+    }: SaveUserDataLambdaPayload["body"] & { transactionStatus: TransactionStatus; updatedAt: string },
   ): Promise<void> {
     const updateItemCommand = new UpdateCommand({
       Key: {
@@ -58,13 +71,15 @@ export class DynamoDbTransactionClient {
         sk,
       },
       UpdateExpression:
-        "set firstName = :firstName, lastName = :lastName, city = :city, zipCode = :zipCode, email = :email",
+        "set firstName = :firstName, lastName = :lastName, city = :city, zipCode = :zipCode, email = :email, transactionStatus = :transactionStatus, updatedAt = :updatedAt",
       ExpressionAttributeValues: {
         ":firstName": firstName,
         ":lastName": lastName,
         ":city": city,
         ":zipCode": zipCode,
         ":email": email,
+        ":transactionStatus": transactionStatus,
+        ":updatedAt": updatedAt,
       },
       TableName: this.tableName,
     });

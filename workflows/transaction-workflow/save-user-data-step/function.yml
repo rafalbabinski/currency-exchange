@@ -3,7 +3,7 @@ save-user-data-step-lambda:
   vpc: ${self:custom.vpc}
   environment:
     DYNAMODB_CURRENCY_TABLE: ${self:custom.environment.DYNAMODB_CURRENCY_TABLE}
-    TRANSACTION_DEADLINE: ${env:TRANSACTION_DEADLINE}
+    TIME_TO_COMPLETE_TRANSACTION: ${env:TIME_TO_COMPLETE_TRANSACTION}
   iamRoleStatements:
     - Effect: Allow
       Action:

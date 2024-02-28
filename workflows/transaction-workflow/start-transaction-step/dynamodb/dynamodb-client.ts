@@ -14,7 +14,7 @@ export class DynamoDbTransactionClient {
     const putItemCommand = new PutCommand({
       Item: {
         pk: `transaction#${transactionId}`,
-        sk: `transaction#${createdAt}`,
+        sk: `createdAt#${createdAt}`,
         ...transaction,
       },
       TableName: this.tableName,

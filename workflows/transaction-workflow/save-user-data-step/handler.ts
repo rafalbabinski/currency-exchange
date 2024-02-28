@@ -1,9 +1,10 @@
 import { Context } from "aws-lambda";
-import { SaveUserDataStepLambdaPayload } from "./handler.types";
-import { createConfig } from "./config";
-import { DynamoDbTransactionClient } from "./dynamodb/dynamodb-client";
-import { DateTime } from "luxon";
+
 import { TransactionStatus } from "../../../shared/types/transaction.types";
+import { checkTransactionExpired } from "../../../shared/utils/check-transaction-expired";
+import { SaveUserDataStepLambdaPayload } from "./handler.types";
+import { DynamoDbTransactionClient } from "./dynamodb/dynamodb-client";
+import { createConfig } from "./config";
 
 const isOffline = process.env.IS_OFFLINE === "true";
 
@@ -20,21 +21,31 @@ export const handle = async (event: SaveUserDataStepLambdaPayload, _context: Con
     return "No transaction with given id";
   }
 
-  const createdAt = response.sk.replace("transaction#", "");
-  const createdAtDate = DateTime.fromISO(createdAt);
+  const createdAt = response.sk.replace("createdAt#", "");
+  const updatedAt = new Date().toISOString();
 
-  const transactionDeadline = createdAtDate.plus(Number(config.transactionDeadline));
-  const currentDate = DateTime.now();
+  const hasTransactionExpired = checkTransactionExpired({
+    createdAt,
+    timeToCompleteTransaction: Number(config.timeToCompleteTransaction),
+  });
 
-  const isLaterThanDeadline = currentDate > transactionDeadline;
+  if (hasTransactionExpired) {
+    const transactionStatus = TransactionStatus.Expired;
 
-  if (isLaterThanDeadline) {
-    const newStatus = TransactionStatus.expired;
+    await dynamoDbClient.updateTransactionStatus(response.pk, response.sk, { transactionStatus, updatedAt });
 
-    await dynamoDbClient.updateTransactionStatus(response.pk, response.sk, newStatus);
+    return {
+      success: false,
+    };
   }
 
-  await dynamoDbClient.updateTransactionUserData(response.pk, response.sk, event.body);
+  const transactionStatus = TransactionStatus.WaitingForPayment;
+
+  await dynamoDbClient.updateTransactionUserData(response.pk, response.sk, {
+    ...event.body,
+    transactionStatus,
+    updatedAt,
+  });
 
   return {
     success: true,

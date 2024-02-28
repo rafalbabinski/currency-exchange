@@ -3,31 +3,48 @@ import { createConfig } from "./config";
 import { DynamoDbTransactionClient } from "./dynamodb/dynamodb-client";
 import { TransactionStatus } from "../../../shared/types/transaction.types";
 
+interface Event {
+  transactionId: string;
+  error: {
+    Error: string;
+    [key: string]: string;
+  };
+}
+
 const isOffline = process.env.IS_OFFLINE === "true";
 
 const config = createConfig(process.env);
 
 const dynamoDbClient = new DynamoDbTransactionClient(config.dynamoDBCurrencyTable, isOffline);
 
-export const handle = async (event: { [key: string]: any }, _context: Context) => {
+export const handle = async (event: Event, _context: Context) => {
+  const response = await dynamoDbClient.getTransaction(event.transactionId);
+
+  const updatedAt = new Date().toISOString();
+
   if (event.error.Error === "States.Timeout") {
-    const newStatus = TransactionStatus.expired;
+    const transactionStatus = TransactionStatus.Expired;
 
-    await dynamoDbClient.updateTransactionStatus(
-      `transaction#${event.transactionId}`,
-      `updatedAt${new Date().toISOString()}`,
-      newStatus,
-    );
+    await dynamoDbClient.updateTransactionStatus(response.pk, response.sk, {
+      transactionStatus,
+      updatedAt,
+      error: null,
+    });
+
+    return {
+      success: false,
+    };
   }
-  console.log("--------------------------------");
-  console.log("Error name:", event.error);
-  console.log("--------------------------------");
 
-  console.log("Error cause:", event.cause);
+  const transactionStatus = TransactionStatus.Error;
 
-  console.log("--------------------------------");
+  await dynamoDbClient.updateTransactionStatus(response.pk, response.sk, {
+    transactionStatus,
+    updatedAt,
+    error: JSON.stringify(event.error),
+  });
 
-  console.log("Context:", _context);
-
-  console.log("Event:", event);
+  return {
+    success: false,
+  };
 };

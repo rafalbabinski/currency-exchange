@@ -18,7 +18,7 @@ States:
           currencyFrom.$: $.body.currencyFrom
           currencyTo.$: $.body.currencyTo
           currencyFromAmount.$: $.body.currencyFromAmount
-    TimeoutSeconds: 60
+    TimeoutSeconds: 600
     Catch:
       - ErrorEquals:
           - States.ALL
@@ -40,7 +40,7 @@ States:
           street.$: $.body.street
           zipCode.$: $.body.zipCode
           email.$: $.body.email
-    TimeoutSeconds: 60
+    TimeoutSeconds: 600
     Catch:
       - ErrorEquals:
           - States.ALL
