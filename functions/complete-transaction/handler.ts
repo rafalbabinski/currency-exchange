@@ -6,26 +6,29 @@ import { StatusCodes } from "http-status-codes";
 
 import { awsLambdaResponse } from "../../shared/aws";
 import { inputOutputLoggerConfigured } from "../../shared/middleware/input-output-logger-configured";
-import { SaveUserDataLambdaPayload, saveUserDataLambdaSchema } from "./event.schema";
+import { CompleteTransactionLambdaPayload, completeTransactionLambdaSchema } from "./event.schema";
 import { zodValidator } from "../../shared/middleware/zod-validator";
 import { queryParser } from "../../shared/middleware/query-parser";
 import { httpCorsConfigured } from "../../shared/middleware/http-cors-configured";
 import { httpErrorHandlerConfigured } from "../../shared/middleware/http-error-handler-configured";
-import { errorLambdaResponse } from "../../shared/middleware/error-lambda-response";
 import { createStepFunctionsClient } from "../../shared/step-functions/step-functions-client-factory";
-import { SendTaskSuccessCommand, SendTaskSuccessInput } from "@aws-sdk/client-sfn";
 import { DynamoDbTransactionClient } from "../check-transaction-status/dynamodb/dynamodb-client";
-import { createConfig } from "./config";
+import { SendTaskSuccessCommand, SendTaskSuccessInput } from "@aws-sdk/client-sfn";
 import { TransactionStatus } from "../../shared/types/transaction.types";
+import { createConfig } from "./config";
+import { createPaymentApiClient } from "./api/payment";
 
 const isOffline = process.env.IS_OFFLINE === "true";
 
 const config = createConfig(process.env);
 
+const paymentApiClient = createPaymentApiClient();
+
 const dynamoDbClient = new DynamoDbTransactionClient(config.dynamoDBCurrencyTable, isOffline);
 
-const lambdaHandler = async (event: SaveUserDataLambdaPayload) => {
+const lambdaHandler = async (event: CompleteTransactionLambdaPayload) => {
   const { id } = event.pathParameters;
+  const { cardNumber, cardholderName, ccv, expirationMonth, expirationYear } = event.body;
 
   const transaction = await dynamoDbClient.getTransaction(id);
 
@@ -35,11 +38,23 @@ const lambdaHandler = async (event: SaveUserDataLambdaPayload) => {
     });
   }
 
-  if (transaction.transactionStatus !== TransactionStatus.Started) {
+  if (transaction.transactionStatus !== TransactionStatus.WaitingForPayment) {
     return awsLambdaResponse(StatusCodes.BAD_REQUEST, {
       error: "Transaction status is not correct",
     });
   }
+
+  await paymentApiClient.processPayment({
+    number: cardNumber,
+    owner: cardholderName,
+    ccv,
+    amount: transaction.currencyFromAmount,
+    currency: transaction.currencyFrom,
+    month: Number(expirationMonth),
+    year: Number(expirationYear),
+    transactionId: id,
+    statusUrl: "http://localhost:3000/test",
+  });
 
   const client = createStepFunctionsClient(isOffline);
 
@@ -47,7 +62,6 @@ const lambdaHandler = async (event: SaveUserDataLambdaPayload) => {
     taskToken: transaction.taskToken,
     output: JSON.stringify({
       transactionId: id,
-      body: event.body,
     }),
   };
 
@@ -67,7 +81,6 @@ export const handle = middy()
   .use(httpHeaderNormalizer())
   .use(httpCorsConfigured)
   .use(queryParser())
-  .use(zodValidator(saveUserDataLambdaSchema))
+  .use(zodValidator(completeTransactionLambdaSchema))
   .use(httpErrorHandlerConfigured)
-  .use(errorLambdaResponse)
   .handler(lambdaHandler);

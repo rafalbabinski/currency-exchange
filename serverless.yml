@@ -32,6 +32,7 @@ custom:
       startTransactionStep: arn:aws:lambda:us-east-1:101010101010:function:${env:APP_NAME, 'tshExampleApp'}-${opt:stage, 'dev'}-start-transaction-step-lambda
       saveUserDataStepStep: arn:aws:lambda:us-east-1:101010101010:function:${env:APP_NAME, 'tshExampleApp'}-${opt:stage, 'dev'}-save-user-data-step-lambda
       errorHandlerStepStep: arn:aws:lambda:us-east-1:101010101010:function:${env:APP_NAME, 'tshExampleApp'}-${opt:stage, 'dev'}-error-handler-step-lambda
+      completeTransactionStepStep: arn:aws:lambda:us-east-1:101010101010:function:${env:APP_NAME, 'tshExampleApp'}-${opt:stage, 'dev'}-complete-transaction-step-lambda
       # PLOP_ADD_WORKFLOW_STEP_LOCAL_STEP
   dynamodb:
     stages:
@@ -92,6 +93,8 @@ functions:
   - ${file(functions/save-user-data/function.yml)}
   - ${file(workflows/transaction-workflow/save-user-data-step/function.yml)}
   - ${file(workflows/transaction-workflow/error-handler-step/function.yml)}
+  - ${file(functions/complete-transaction/function.yml)}
+  - ${file(workflows/transaction-workflow/complete-transaction-step/function.yml)}
   # PLOP_ADD_LAMBDA
 
 stepFunctions:

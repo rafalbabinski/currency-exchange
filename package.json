@@ -45,6 +45,7 @@
     "@middy/input-output-logger": "^4.6.0",
     "@middy/util": "^4.6.0",
     "axios": "^1.6.0",
+    "card-validator": "^9.1.0",
     "dotenv": "^16.3.1",
     "http-status-codes": "^2.2.0",
     "luxon": "^3.4.4",

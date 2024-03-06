@@ -1,0 +1,14 @@
+complete-transaction-step-lambda:
+  handler: workflows/transaction-workflow/complete-transaction-step/handler.handle
+  vpc: ${self:custom.vpc}
+  environment:
+    DYNAMODB_CURRENCY_TABLE: ${self:custom.environment.DYNAMODB_CURRENCY_TABLE}
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - dynamodb:GetItem
+        - dynamodb:PutItem
+      Resource:
+        Fn::GetAtt:
+          - currencyTable
+          - Arn

@@ -1,7 +1,7 @@
 Comment: Transaction Workflow
 StartAt: startTransactionStep
 States:
-  errorHandlerStepStep:
+  errorHandlerStep:
     Type: Task
     Resource: !GetAtt error-handler-step-lambda.Arn
     TimeoutSeconds: 28
@@ -23,9 +23,9 @@ States:
       - ErrorEquals:
           - States.ALL
         ResultPath: $.error
-        Next: errorHandlerStepStep
-    Next: saveUserDataStepStep
-  saveUserDataStepStep:
+        Next: errorHandlerStep
+    Next: saveUserDataStep
+  saveUserDataStep:
     Type: Task
     Resource: arn:aws:states:::lambda:invoke.waitForTaskToken
     Parameters:
@@ -45,5 +45,20 @@ States:
       - ErrorEquals:
           - States.ALL
         ResultPath: $.error
-        Next: errorHandlerStepStep
+        Next: errorHandlerStep
+    Next: completeTransactionStep
+  completeTransactionStep:
+    Type: Task
+    Resource: arn:aws:states:::lambda:invoke.waitForTaskToken
+    Parameters:
+      FunctionName: !GetAtt complete-transaction-step-lambda.Arn
+      Payload:
+        taskToken.$: $$.Task.Token
+        transactionId.$: $.transactionId
+    TimeoutSeconds: 600
+    Catch:
+      - ErrorEquals:
+          - States.ALL
+        ResultPath: $.error
+        Next: errorHandlerStep
     End: true
