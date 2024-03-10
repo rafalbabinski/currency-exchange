@@ -13,7 +13,7 @@ const config = createConfig(process.env);
 const dynamoDbClient = new DynamoDbTransactionClient(config.dynamoDBCurrencyTable, isOffline);
 
 export const handle = async (event: SaveUserDataStepLambdaPayload, _context: Context) => {
-  const { transactionId } = event;
+  const { transactionId, taskToken } = event;
 
   const response = await dynamoDbClient.getTransaction(transactionId);
 
@@ -45,6 +45,7 @@ export const handle = async (event: SaveUserDataStepLambdaPayload, _context: Con
     ...event.body,
     transactionStatus,
     updatedAt,
+    taskToken,
   });
 
   return {

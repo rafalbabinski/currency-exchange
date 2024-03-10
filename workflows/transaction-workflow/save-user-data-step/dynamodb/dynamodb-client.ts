@@ -63,7 +63,12 @@ export class DynamoDbTransactionClient {
       email,
       transactionStatus,
       updatedAt,
-    }: SaveUserDataLambdaPayload["body"] & { transactionStatus: TransactionStatus; updatedAt: string },
+      taskToken,
+    }: SaveUserDataLambdaPayload["body"] & {
+      transactionStatus: TransactionStatus;
+      updatedAt: string;
+      taskToken: string;
+    },
   ): Promise<void> {
     const updateItemCommand = new UpdateCommand({
       Key: {
@@ -71,7 +76,7 @@ export class DynamoDbTransactionClient {
         sk,
       },
       UpdateExpression:
-        "set firstName = :firstName, lastName = :lastName, city = :city, zipCode = :zipCode, email = :email, transactionStatus = :transactionStatus, updatedAt = :updatedAt",
+        "set firstName = :firstName, lastName = :lastName, city = :city, zipCode = :zipCode, email = :email, transactionStatus = :transactionStatus, updatedAt = :updatedAt, taskToken = :taskToken",
       ExpressionAttributeValues: {
         ":firstName": firstName,
         ":lastName": lastName,
@@ -80,6 +85,7 @@ export class DynamoDbTransactionClient {
         ":email": email,
         ":transactionStatus": transactionStatus,
         ":updatedAt": updatedAt,
+        ":taskToken": taskToken,
       },
       TableName: this.tableName,
     });
