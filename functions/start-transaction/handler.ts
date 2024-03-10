@@ -16,6 +16,7 @@ import { TransactionStatus } from "../../shared/types/transaction.types";
 import { StartTransactionLambdaPayload, startTransactionLambdaSchema } from "./event.schema";
 import { createConfig } from "./config";
 import { DynamoDbCurrencyClient } from "../get-rates/dynamodb/dynamodb-client";
+import { winstonLogger } from "../../shared/logger";
 
 const isOffline = process.env.IS_OFFLINE === "true";
 
@@ -25,6 +26,8 @@ const dynamoDbCurrencyClient = new DynamoDbCurrencyClient(config.dynamoDBCurrenc
 
 const lambdaHandler = async (event: StartTransactionLambdaPayload) => {
   const currencyRates = await dynamoDbCurrencyClient.getCurrencyRates(event.body.currencyFrom);
+
+  winstonLogger.info(`currencyRates: ${JSON.stringify(currencyRates)}`);
 
   if (!currencyRates) {
     throw Error("No currency rates available");
