@@ -27,7 +27,7 @@ const dynamoDbCurrencyClient = new DynamoDbCurrencyClient(config.dynamoDBCurrenc
 const lambdaHandler = async (event: StartTransactionLambdaPayload) => {
   const currencyRates = await dynamoDbCurrencyClient.getCurrencyRates(event.body.currencyFrom);
 
-  winstonLogger.info(`currencyRates: ${JSON.stringify(currencyRates)}`);
+  winstonLogger.info(`currencyRates: ${JSON.stringify(currencyRates)}, ${event.body.currencyFrom}`);
 
   if (!currencyRates) {
     throw Error("No currency rates available");
@@ -49,7 +49,9 @@ const lambdaHandler = async (event: StartTransactionLambdaPayload) => {
 
   const command = new StartExecutionCommand(input);
 
-  client.send(command);
+  const sendCommand = await client.send(command);
+
+  winstonLogger.info(`sendCommand: ${JSON.stringify(sendCommand)}`);
 
   return awsLambdaResponse(StatusCodes.OK, {
     success: true,
