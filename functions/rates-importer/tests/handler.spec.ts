@@ -13,7 +13,7 @@ describe("rates-importer endpoint", () => {
 
   describe("Test obligatory query parameter", () => {
     it("GET `local/rates-importer` returns 200", () => {
-      return server.get("local/exchange-rates")
+      return server.get("local/rates-importer")
         .set('x-api-key', config.apiKey)
         .expect(200);
     });

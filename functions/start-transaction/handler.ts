@@ -13,6 +13,7 @@ import { httpErrorHandlerConfigured } from "../../shared/middleware/http-error-h
 import { errorLambdaResponse } from "../../shared/middleware/error-lambda-response";
 import { createStepFunctionsClient } from "../../shared/step-functions/step-functions-client-factory";
 import { TransactionStatus } from "../../shared/types/transaction.types";
+import { AppError } from "../../shared/errors/app.error";
 import { StartTransactionLambdaPayload, startTransactionLambdaSchema } from "./event.schema";
 import { createConfig } from "./config";
 import { DynamoDbCurrencyClient } from "../get-rates/dynamodb/dynamodb-client";
@@ -24,10 +25,10 @@ const config = createConfig(process.env);
 const dynamoDbCurrencyClient = new DynamoDbCurrencyClient(config.dynamoDBCurrencyTable, isOffline);
 
 const lambdaHandler = async (event: StartTransactionLambdaPayload) => {
-  const currencyRates = await dynamoDbCurrencyClient.getCurrencyRates(config.baseImporterCurrency);
+  const response = await dynamoDbCurrencyClient.getCurrencyRates(config.baseImporterCurrency);
 
-  if (!currencyRates) {
-    throw Error("No currency rates available");
+  if (!response) {
+    throw new AppError("No currency rates available");
   }
 
   const client = createStepFunctionsClient(isOffline);

@@ -1,9 +1,10 @@
 import request from "supertest";
+
 import { createConfig } from "./../config";
 
 const config = createConfig(process.env);
 
-describe("test endpoint", () => {
+describe("health-check endpoint", () => {
   const server = request("http://localhost:1337/");
 
   describe("Test obligatory query parameter", () => {
