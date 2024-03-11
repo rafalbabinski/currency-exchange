@@ -5,7 +5,7 @@ import { DynamoDbCurrencyClient } from "../../../functions/get-rates/dynamodb/dy
 import { toTransactionDto } from "./helpers/to-transaction-dto";
 import { DynamoDbTransactionClient } from "./dynamodb/dynamodb-client";
 import { createConfig } from "./config";
-import { StartTransactionStepLambdaPayload } from "./handler.types";
+import { StartTransactionStepLambdaPayload } from "./types";
 
 const isOffline = process.env.IS_OFFLINE === "true";
 

@@ -1,8 +1,8 @@
 import sinon from "sinon";
 import { expect } from "chai";
+import { DateTime } from "luxon";
 
 import { checkTransactionExpired } from "./check-transaction-expired";
-import { DateTime } from "luxon";
 
 const mockNow = DateTime.local(2024, 1, 28, 20).toJSDate();
 const timeToCompleteTransaction = 3 * 60 * 60 * 1000;

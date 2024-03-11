@@ -10,6 +10,7 @@ import { httpErrorHandlerConfigured } from "../../shared/middleware/http-error-h
 import { errorLambdaResponse } from "../../shared/middleware/error-lambda-response";
 import { queryParser } from "../../shared/middleware/query-parser";
 import { zodValidator } from "../../shared/middleware/zod-validator";
+import { AppError } from "../../shared/errors/app.error";
 import { calculateExchangeRate } from "./helpers/calculate-exchange-rates";
 import { createConfig } from "./config";
 import { DynamoDbCurrencyClient } from "./dynamodb/dynamodb-client";
@@ -22,10 +23,10 @@ const config = createConfig(process.env);
 const dynamoDbClient = new DynamoDbCurrencyClient(config.dynamoDBCurrencyTable, isOffline);
 
 const lambdaHandler = async (event: GetRatesLambdaPayload) => {
-  const response = await dynamoDbClient.getCurrencyRates(config.currencyFrom);
+  const response = await dynamoDbClient.getCurrencyRates(config.baseImporterCurrency);
 
   if (!response) {
-    throw Error("No currency rates available");
+    throw new AppError("No currency rates available");
   }
 
   const exchangeRates = calculateExchangeRate({
@@ -45,7 +46,7 @@ export const handle = middy()
   .use(httpHeaderNormalizer())
   .use(httpCorsConfigured)
   .use(queryParser())
-  .use(zodValidator(getRatesLambdaSchema))
+  .use(zodValidator(getRatesLambdaSchema(config)))
   .use(httpErrorHandlerConfigured)
   .use(errorLambdaResponse)
   .handler(lambdaHandler);
