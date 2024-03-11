@@ -3,6 +3,9 @@ start-transaction:
   vpc: ${self:custom.vpc}
   environment:
     DYNAMODB_CURRENCY_TABLE: ${self:custom.environment.DYNAMODB_CURRENCY_TABLE}
+    CURRENCY_AVAILABLE: ${env:CURRENCY_AVAILABLE}
+    CURRENCY_SCOPE: ${env:CURRENCY_SCOPE}
+    BASE_IMPORTER_CURRENCY: ${env:BASE_IMPORTER_CURRENCY}
     STATE_MACHINE_ARN: ${self:resources.Outputs.TransactionWorkflowStateMachine.Value}
     STATE_MACHINE_ARN_OFFLINE: arn:aws:states:${self:custom.stepFunctionsLocal.region}:${self:custom.stepFunctionsLocal.accountId}:stateMachine:TransactionWorkflow${env:APP_NAME}${opt:stage, 'local'}
   events:

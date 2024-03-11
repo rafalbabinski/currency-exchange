@@ -16,7 +16,6 @@ import { TransactionStatus } from "../../shared/types/transaction.types";
 import { StartTransactionLambdaPayload, startTransactionLambdaSchema } from "./event.schema";
 import { createConfig } from "./config";
 import { DynamoDbCurrencyClient } from "../get-rates/dynamodb/dynamodb-client";
-import { winstonLogger } from "../../shared/logger";
 
 const isOffline = process.env.IS_OFFLINE === "true";
 
@@ -25,9 +24,7 @@ const config = createConfig(process.env);
 const dynamoDbCurrencyClient = new DynamoDbCurrencyClient(config.dynamoDBCurrencyTable, isOffline);
 
 const lambdaHandler = async (event: StartTransactionLambdaPayload) => {
-  const currencyRates = await dynamoDbCurrencyClient.getCurrencyRates(event.body.currencyFrom);
-
-  winstonLogger.info(`currencyRates: ${JSON.stringify(currencyRates)}, ${event.body.currencyFrom}`);
+  const currencyRates = await dynamoDbCurrencyClient.getCurrencyRates(config.baseImporterCurrency);
 
   if (!currencyRates) {
     throw Error("No currency rates available");
@@ -49,14 +46,13 @@ const lambdaHandler = async (event: StartTransactionLambdaPayload) => {
 
   const command = new StartExecutionCommand(input);
 
-  const sendCommand = await client.send(command);
-
-  winstonLogger.info(`sendCommand: ${JSON.stringify(sendCommand)}`);
+  await client.send(command);
 
   return awsLambdaResponse(StatusCodes.OK, {
     success: true,
     transactionId,
     status: TransactionStatus.Pending,
+    ...event.body,
   });
 };
 
@@ -66,7 +62,7 @@ export const handle = middy()
   .use(httpEventNormalizer())
   .use(httpHeaderNormalizer())
   .use(httpCorsConfigured)
-  .use(zodValidator(startTransactionLambdaSchema))
+  .use(zodValidator(startTransactionLambdaSchema(config)))
   .use(httpErrorHandlerConfigured)
   .use(errorLambdaResponse)
   .handler(lambdaHandler);

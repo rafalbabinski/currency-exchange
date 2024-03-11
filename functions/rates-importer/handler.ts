@@ -23,10 +23,10 @@ const dynamoDbClient = new DynamoDbCurrencyClient(config.dynamoDBCurrencyTable, 
 
 const lambdaHandler = async (): Promise<APIGatewayProxyResult> => {
   const rates = await currencyApiClient.getRates({
-    currency: config.currencyFrom,
+    currency: config.baseImporterCurrency,
   });
 
-  const mappedRates = toCurrencyRatesDto(rates);
+  const mappedRates = toCurrencyRatesDto(rates, config.currencyScope);
 
   winstonLogger.info("Currency rates:", rates);
 

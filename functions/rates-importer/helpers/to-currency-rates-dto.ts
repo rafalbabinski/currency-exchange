@@ -14,13 +14,15 @@ export interface CurrencyRatesDto extends Rates {
   createdAt: string;
 }
 
-export const toCurrencyRatesDto = (response: RatesResponse): CurrencyRatesDto => {
+export const toCurrencyRatesDto = (response: RatesResponse, currencyScope: string): CurrencyRatesDto => {
   const currencyFrom = response.currency;
   const createdAt = new Date().toISOString();
 
+  const filteredResponseRates = response.rates.filter((rate) => currencyScope.includes(rate.currency));
+
   const rates: Rates = {};
 
-  response.rates.forEach((rate) => {
+  filteredResponseRates.forEach((rate) => {
     rates[rate.currency] = rate.rate;
   });
 

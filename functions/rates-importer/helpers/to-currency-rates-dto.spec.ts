@@ -31,7 +31,27 @@ describe("toCurrencyRatesDto", () => {
       GBP: 0.75,
     };
 
-    const convertedDto = toCurrencyRatesDto(ratesResponse);
+    const convertedDto = toCurrencyRatesDto(ratesResponse, "USD,EUR,GBP");
+
+    expect(convertedDto).to.deep.equal(expectedDto);
+  });
+
+  it("should filter currency which is not in scope", () => {
+    const ratesResponse: RatesResponse = {
+      currency: "USD",
+      rates: [
+        { currency: "EUR", rate: 0.85 },
+        { currency: "GBP", rate: 0.75 },
+      ],
+    };
+
+    const expectedDto: CurrencyRatesDto = {
+      currencyFrom: "USD",
+      createdAt: new Date().toISOString(),
+      EUR: 0.85,
+    };
+
+    const convertedDto = toCurrencyRatesDto(ratesResponse, "USD,EUR");
 
     expect(convertedDto).to.deep.equal(expectedDto);
   });

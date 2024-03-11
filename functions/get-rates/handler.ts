@@ -22,7 +22,7 @@ const config = createConfig(process.env);
 const dynamoDbClient = new DynamoDbCurrencyClient(config.dynamoDBCurrencyTable, isOffline);
 
 const lambdaHandler = async (event: GetRatesLambdaPayload) => {
-  const response = await dynamoDbClient.getCurrencyRates(config.currencyFrom);
+  const response = await dynamoDbClient.getCurrencyRates(config.baseImporterCurrency);
 
   if (!response) {
     throw Error("No currency rates available");
@@ -45,7 +45,7 @@ export const handle = middy()
   .use(httpHeaderNormalizer())
   .use(httpCorsConfigured)
   .use(queryParser())
-  .use(zodValidator(getRatesLambdaSchema))
+  .use(zodValidator(getRatesLambdaSchema(config)))
   .use(httpErrorHandlerConfigured)
   .use(errorLambdaResponse)
   .handler(lambdaHandler);
