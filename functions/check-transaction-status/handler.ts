@@ -49,7 +49,7 @@ const lambdaHandler = async (event: CheckTransactionStatusLambdaPayload) => {
     });
   }
 
-  const createdAt = response.sk.replace("transaction#", "");
+  const createdAt = response.sk.replace("createdAt#", "");
 
   const hasTransactionExpired = checkTransactionExpired({
     createdAt,
