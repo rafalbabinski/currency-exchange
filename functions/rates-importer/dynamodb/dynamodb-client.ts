@@ -5,8 +5,8 @@ import { createDynamoDBClient } from "../../../shared/dynamodb/dynamodb-client-f
 export class DynamoDbCurrencyClient {
   private client: DynamoDBDocumentClient;
 
-  constructor(private tableName: string, private isOffline: boolean) {
-    this.client = createDynamoDBClient(this.isOffline);
+  constructor(private tableName: string) {
+    this.client = createDynamoDBClient();
   }
 
   async saveCurrencyRates(currencyRates: CurrencyRatesDto): Promise<void> {

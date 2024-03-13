@@ -1,12 +1,11 @@
 import request from "supertest";
-import { expect } from "chai";
 
 import { createConfig } from "./../config";
 import { createDynamoDBClient } from "../../../shared/dynamodb/dynamodb-client-factory";
 
 const config = createConfig(process.env);
 
-const dynamoDb = createDynamoDBClient(true)
+const dynamoDb = createDynamoDBClient()
 
 describe("rates-importer endpoint", () => {
   const server = request("http://localhost:1337/");

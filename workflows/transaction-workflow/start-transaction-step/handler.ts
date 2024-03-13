@@ -7,13 +7,11 @@ import { DynamoDbTransactionClient } from "./dynamodb/dynamodb-client";
 import { createConfig } from "./config";
 import { StartTransactionStepLambdaPayload } from "./types";
 
-const isOffline = process.env.IS_OFFLINE === "true";
-
 const config = createConfig(process.env);
 
-const dynamoDbTransactionClient = new DynamoDbTransactionClient(config.dynamoDBCurrencyTable, isOffline);
+const dynamoDbTransactionClient = new DynamoDbTransactionClient(config.dynamoDBCurrencyTable);
 
-const dynamoDbCurrencyClient = new DynamoDbCurrencyClient(config.dynamoDBCurrencyTable, isOffline);
+const dynamoDbCurrencyClient = new DynamoDbCurrencyClient(config.dynamoDBCurrencyTable);
 
 export const handle = async (event: StartTransactionStepLambdaPayload, _context: Context) => {
   const { currencyFrom, currencyFromAmount, currencyTo } = event.body;

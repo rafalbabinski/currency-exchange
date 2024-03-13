@@ -22,7 +22,7 @@ const isOffline = process.env.IS_OFFLINE === "true";
 
 const config = createConfig(process.env);
 
-const dynamoDbCurrencyClient = new DynamoDbCurrencyClient(config.dynamoDBCurrencyTable, isOffline);
+const dynamoDbCurrencyClient = new DynamoDbCurrencyClient(config.dynamoDBCurrencyTable);
 
 const lambdaHandler = async (event: StartTransactionLambdaPayload) => {
   const response = await dynamoDbCurrencyClient.getCurrencyRates(config.baseImporterCurrency);
@@ -31,7 +31,7 @@ const lambdaHandler = async (event: StartTransactionLambdaPayload) => {
     throw new AppError("No currency rates available");
   }
 
-  const client = createStepFunctionsClient(isOffline);
+  const client = createStepFunctionsClient();
 
   const transactionId = nanoid();
 
