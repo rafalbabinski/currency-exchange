@@ -80,6 +80,14 @@ provider:
           - states:StartExecution
         Resource:
           - "*"
+      - Effect: Allow
+        Action:
+          - dynamodb:PutItem
+          - dynamodb:Query
+        Resource:
+          Fn::GetAtt:
+            - currencyTable
+            - Arn
   apiGateway:
     apiKeys: ${self:custom.apiKeys.${opt:stage, 'local'}}
 

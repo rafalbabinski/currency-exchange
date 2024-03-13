@@ -5,13 +5,4 @@ start-transaction-step-lambda:
     DYNAMODB_CURRENCY_TABLE: ${self:custom.environment.DYNAMODB_CURRENCY_TABLE}
     CURRENCY_AVAILABLE: ${env:CURRENCY_AVAILABLE}
     CURRENCY_SCOPE: ${env:CURRENCY_SCOPE}
-    BASE_CURRENCY: ${env:BASE_CURRENCY}
-  iamRoleStatements:
-    - Effect: Allow
-      Action:
-        - dynamodb:GetItem
-        - dynamodb:PutItem
-      Resource:
-        Fn::GetAtt:
-          - currencyTable
-          - Arn
+    BASE_IMPORTER_CURRENCY: ${env:BASE_IMPORTER_CURRENCY}

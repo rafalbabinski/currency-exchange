@@ -13,20 +13,18 @@ import { createCurrencyApiClient } from "./api/currency";
 import { DynamoDbCurrencyClient } from "./dynamodb/dynamodb-client";
 import { toCurrencyRatesDto } from "./helpers/to-currency-rates-dto";
 
-const isOffline = process.env.IS_OFFLINE === "true";
-
 const config = createConfig(process.env);
 
 const currencyApiClient = createCurrencyApiClient();
 
-const dynamoDbClient = new DynamoDbCurrencyClient(config.dynamoDBCurrencyTable, isOffline);
+const dynamoDbClient = new DynamoDbCurrencyClient(config.dynamoDBCurrencyTable);
 
 const lambdaHandler = async (): Promise<APIGatewayProxyResult> => {
   const rates = await currencyApiClient.getRates({
-    currency: config.currencyFrom,
+    currency: config.baseImporterCurrency,
   });
 
-  const mappedRates = toCurrencyRatesDto(rates);
+  const mappedRates = toCurrencyRatesDto(rates, config.currencyScope);
 
   winstonLogger.info("Currency rates:", rates);
 

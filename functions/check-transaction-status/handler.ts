@@ -14,14 +14,13 @@ import { httpErrorHandlerConfigured } from "../../shared/middleware/http-error-h
 import { errorLambdaResponse } from "../../shared/middleware/error-lambda-response";
 import { TransactionStatus } from "../../shared/types/transaction.types";
 import { checkTransactionExpired } from "../../shared/utils/check-transaction-expired";
+import { TransactionData } from "../../workflows/transaction-workflow/start-transaction-step/helpers/to-transaction-dto";
 import { createConfig } from "./config";
 import { CheckTransactionStatusLambdaPayload, checkTransactionStatusLambdaSchema } from "./event.schema";
 
-const isOffline = process.env.IS_OFFLINE === "true";
-
 const config = createConfig(process.env);
 
-const dynamoDbClient = new DynamoDbTransactionClient(config.dynamoDBCurrencyTable, isOffline);
+const dynamoDbClient = new DynamoDbTransactionClient(config.dynamoDBCurrencyTable);
 
 const lambdaHandler = async (event: CheckTransactionStatusLambdaPayload) => {
   const { id } = event.pathParameters;
@@ -34,11 +33,23 @@ const lambdaHandler = async (event: CheckTransactionStatusLambdaPayload) => {
     });
   }
 
+  const transactionDetails: Partial<TransactionData> = {
+    currencyFrom: response.currencyFrom,
+    currencyFromAmount: response.currencyFromAmount,
+    currencyTo: response.currencyTo,
+    currencyToAmount: response.currencyToAmount,
+    exchangeRate: response.exchangeRate,
+  };
+
   if (response.transactionStatus !== "started") {
-    return awsLambdaResponse(StatusCodes.OK, { success: true, transactionStatus: response.transactionStatus });
+    return awsLambdaResponse(StatusCodes.OK, {
+      success: true,
+      transactionStatus: response.transactionStatus,
+      transactionDetails,
+    });
   }
 
-  const createdAt = response.sk.replace("transaction#", "");
+  const createdAt = response.sk.replace("createdAt#", "");
 
   const hasTransactionExpired = checkTransactionExpired({
     createdAt,
@@ -51,10 +62,14 @@ const lambdaHandler = async (event: CheckTransactionStatusLambdaPayload) => {
 
     await dynamoDbClient.updateTransactionStatus(response.pk, response.sk, { transactionStatus, updatedAt });
 
-    return awsLambdaResponse(StatusCodes.OK, { success: true, transactionStatus });
+    return awsLambdaResponse(StatusCodes.OK, { success: true, transactionStatus, transactionDetails });
   }
 
-  return awsLambdaResponse(StatusCodes.OK, { success: true, transactionStatus: response.transactionStatus });
+  return awsLambdaResponse(StatusCodes.OK, {
+    success: true,
+    transactionStatus: response.transactionStatus,
+    transactionDetails,
+  });
 };
 
 export const handle = middy()

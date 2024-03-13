@@ -14,6 +14,7 @@ import { httpErrorHandlerConfigured } from "../../shared/middleware/http-error-h
 import { errorLambdaResponse } from "../../shared/middleware/error-lambda-response";
 import { createStepFunctionsClient } from "../../shared/step-functions/step-functions-client-factory";
 import { TransactionStatus } from "../../shared/types/transaction.types";
+import { AppError } from "../../shared/errors/app.error";
 import { StartTransactionLambdaPayload, startTransactionLambdaSchema } from "./event.schema";
 import { createConfig } from "./config";
 import { DynamoDbCurrencyClient } from "../get-rates/dynamodb/dynamodb-client";
@@ -22,16 +23,16 @@ const isOffline = process.env.IS_OFFLINE === "true";
 
 const config = createConfig(process.env);
 
-const dynamoDbCurrencyClient = new DynamoDbCurrencyClient(config.dynamoDBCurrencyTable, isOffline);
+const dynamoDbCurrencyClient = new DynamoDbCurrencyClient(config.dynamoDBCurrencyTable);
 
 const lambdaHandler = async (event: StartTransactionLambdaPayload) => {
-  const currencyRates = await dynamoDbCurrencyClient.getCurrencyRates(event.body.currencyFrom);
+  const response = await dynamoDbCurrencyClient.getCurrencyRates(config.baseImporterCurrency);
 
-  if (!currencyRates) {
-    throw Error("No currency rates available");
+  if (!response) {
+    throw new AppError("No currency rates available");
   }
 
-  const client = createStepFunctionsClient(isOffline);
+  const client = createStepFunctionsClient();
 
   const transactionId = nanoid();
 
@@ -45,12 +46,13 @@ const lambdaHandler = async (event: StartTransactionLambdaPayload) => {
 
   const command = new StartExecutionCommand(input);
 
-  client.send(command);
+  await client.send(command);
 
   return awsLambdaResponse(StatusCodes.OK, {
     success: true,
     transactionId,
     status: TransactionStatus.Pending,
+    ...event.body,
   });
 };
 
@@ -60,7 +62,7 @@ export const handle = middy()
   .use(httpEventNormalizer())
   .use(httpHeaderNormalizer())
   .use(httpCorsConfigured)
-  .use(zodValidator(startTransactionLambdaSchema))
+  .use(zodValidator(startTransactionLambdaSchema(config)))
   .use(httpErrorHandlerConfigured)
   .use(errorLambdaResponse)
   .handler(lambdaHandler);

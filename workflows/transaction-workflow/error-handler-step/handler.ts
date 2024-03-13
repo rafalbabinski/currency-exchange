@@ -1,21 +1,13 @@
 import { Context } from "aws-lambda";
+
+import { TransactionStatus } from "../../../shared/types/transaction.types";
 import { createConfig } from "./config";
 import { DynamoDbTransactionClient } from "./dynamodb/dynamodb-client";
-import { TransactionStatus } from "../../../shared/types/transaction.types";
-
-interface Event {
-  transactionId: string;
-  error: {
-    Error: string;
-    [key: string]: string;
-  };
-}
-
-const isOffline = process.env.IS_OFFLINE === "true";
+import { Event } from "./types";
 
 const config = createConfig(process.env);
 
-const dynamoDbClient = new DynamoDbTransactionClient(config.dynamoDBCurrencyTable, isOffline);
+const dynamoDbClient = new DynamoDbTransactionClient(config.dynamoDBCurrencyTable);
 
 export const handle = async (event: Event, _context: Context) => {
   const response = await dynamoDbClient.getTransaction(event.transactionId);

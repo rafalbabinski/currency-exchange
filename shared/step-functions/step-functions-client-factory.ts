@@ -1,6 +1,8 @@
 import { SFNClient } from "@aws-sdk/client-sfn";
 
-export const createStepFunctionsClient = (isOffline: boolean): SFNClient => {
+const isOffline = process.env.IS_OFFLINE === "true";
+
+export const createStepFunctionsClient = (): SFNClient => {
   const client = new SFNClient(
     isOffline
       ? {

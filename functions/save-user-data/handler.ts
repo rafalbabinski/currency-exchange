@@ -18,11 +18,9 @@ import { DynamoDbTransactionClient } from "../check-transaction-status/dynamodb/
 import { createConfig } from "./config";
 import { TransactionStatus } from "../../shared/types/transaction.types";
 
-const isOffline = process.env.IS_OFFLINE === "true";
-
 const config = createConfig(process.env);
 
-const dynamoDbClient = new DynamoDbTransactionClient(config.dynamoDBCurrencyTable, isOffline);
+const dynamoDbClient = new DynamoDbTransactionClient(config.dynamoDBCurrencyTable);
 
 const lambdaHandler = async (event: SaveUserDataLambdaPayload) => {
   const { id } = event.pathParameters;
@@ -41,7 +39,7 @@ const lambdaHandler = async (event: SaveUserDataLambdaPayload) => {
     });
   }
 
-  const client = createStepFunctionsClient(isOffline);
+  const client = createStepFunctionsClient();
 
   const input: SendTaskSuccessInput = {
     taskToken: transaction.taskToken,
@@ -53,7 +51,7 @@ const lambdaHandler = async (event: SaveUserDataLambdaPayload) => {
 
   const command = new SendTaskSuccessCommand(input);
 
-  client.send(command);
+  await client.send(command);
 
   return awsLambdaResponse(StatusCodes.OK, {
     success: true,

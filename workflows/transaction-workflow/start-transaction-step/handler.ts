@@ -5,15 +5,13 @@ import { DynamoDbCurrencyClient } from "../../../functions/get-rates/dynamodb/dy
 import { toTransactionDto } from "./helpers/to-transaction-dto";
 import { DynamoDbTransactionClient } from "./dynamodb/dynamodb-client";
 import { createConfig } from "./config";
-import { StartTransactionStepLambdaPayload } from "./handler.types";
-
-const isOffline = process.env.IS_OFFLINE === "true";
+import { StartTransactionStepLambdaPayload } from "./types";
 
 const config = createConfig(process.env);
 
-const dynamoDbTransactionClient = new DynamoDbTransactionClient(config.dynamoDBCurrencyTable, isOffline);
+const dynamoDbTransactionClient = new DynamoDbTransactionClient(config.dynamoDBCurrencyTable);
 
-const dynamoDbCurrencyClient = new DynamoDbCurrencyClient(config.dynamoDBCurrencyTable, isOffline);
+const dynamoDbCurrencyClient = new DynamoDbCurrencyClient(config.dynamoDBCurrencyTable);
 
 export const handle = async (event: StartTransactionStepLambdaPayload, _context: Context) => {
   const { transactionId, taskToken } = event;

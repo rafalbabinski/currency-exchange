@@ -6,18 +6,18 @@ import { CurrencyRatesData } from "../../rates-importer/helpers/to-currency-rate
 export class DynamoDbCurrencyClient {
   private client: DynamoDBDocumentClient;
 
-  constructor(private tableName: string, private isOffline: boolean) {
-    this.client = createDynamoDBClient(this.isOffline);
+  constructor(private tableName: string) {
+    this.client = createDynamoDBClient();
   }
 
-  async getCurrencyRates(currencyFrom: string) {
+  async getCurrencyRates(baseImporterCurrency: string) {
     const queryCommand = new QueryCommand({
       KeyConditionExpression: "#pk = :pk",
       ExpressionAttributeNames: {
         "#pk": "pk",
       },
       ExpressionAttributeValues: {
-        ":pk": `currencyRate#${currencyFrom}`,
+        ":pk": `currencyRate#${baseImporterCurrency}`,
       },
       ScanIndexForward: false,
       Limit: 1,

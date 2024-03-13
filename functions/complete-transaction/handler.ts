@@ -18,13 +18,11 @@ import { TransactionStatus } from "../../shared/types/transaction.types";
 import { createConfig } from "./config";
 import { createPaymentApiClient } from "./api/payment";
 
-const isOffline = process.env.IS_OFFLINE === "true";
-
 const config = createConfig(process.env);
 
 const paymentApiClient = createPaymentApiClient();
 
-const dynamoDbClient = new DynamoDbTransactionClient(config.dynamoDBCurrencyTable, isOffline);
+const dynamoDbClient = new DynamoDbTransactionClient(config.dynamoDBCurrencyTable);
 
 const lambdaHandler = async (event: CompleteTransactionLambdaPayload) => {
   const { id } = event.pathParameters;
@@ -56,7 +54,7 @@ const lambdaHandler = async (event: CompleteTransactionLambdaPayload) => {
     statusUrl: "http://localhost:3000/test",
   });
 
-  const client = createStepFunctionsClient(isOffline);
+  const client = createStepFunctionsClient();
 
   const input: SendTaskSuccessInput = {
     taskToken: transaction.taskToken,

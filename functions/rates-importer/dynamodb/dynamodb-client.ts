@@ -5,12 +5,12 @@ import { createDynamoDBClient } from "../../../shared/dynamodb/dynamodb-client-f
 export class DynamoDbCurrencyClient {
   private client: DynamoDBDocumentClient;
 
-  constructor(private tableName: string, private isOffline: boolean) {
-    this.client = createDynamoDBClient(this.isOffline);
+  constructor(private tableName: string) {
+    this.client = createDynamoDBClient();
   }
 
   async saveCurrencyRates(currencyRates: CurrencyRatesDto): Promise<void> {
-    const { createdAt, currencyFrom, ...rates } = currencyRates;
+    const { createdAt, baseImporterCurrency, ...rates } = currencyRates;
 
     const ratesItems = Object.keys(rates).map((currencyCode) => ({
       [currencyCode]: rates[currencyCode].toString(),
@@ -18,8 +18,8 @@ export class DynamoDbCurrencyClient {
 
     const putItemCommand = new PutCommand({
       Item: {
-        pk: `currencyRate#${currencyFrom}`,
-        sk: `currencyRate#${createdAt}`,
+        pk: `currencyRate#${baseImporterCurrency}`,
+        sk: `createdAt#${createdAt}`,
         ...Object.assign({}, ...ratesItems),
       },
       TableName: this.tableName,

@@ -7,8 +7,8 @@ import { TransactionStatus } from "../../../shared/types/transaction.types";
 export class DynamoDbTransactionClient {
   private client: DynamoDBDocumentClient;
 
-  constructor(private tableName: string, private isOffline: boolean) {
-    this.client = createDynamoDBClient(this.isOffline);
+  constructor(private tableName: string) {
+    this.client = createDynamoDBClient();
   }
 
   async getTransaction(id: string) {
