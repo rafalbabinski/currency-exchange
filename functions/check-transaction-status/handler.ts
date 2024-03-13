@@ -18,11 +18,9 @@ import { TransactionData } from "../../workflows/transaction-workflow/start-tran
 import { createConfig } from "./config";
 import { CheckTransactionStatusLambdaPayload, checkTransactionStatusLambdaSchema } from "./event.schema";
 
-const isOffline = process.env.IS_OFFLINE === "true";
-
 const config = createConfig(process.env);
 
-const dynamoDbClient = new DynamoDbTransactionClient(config.dynamoDBCurrencyTable, isOffline);
+const dynamoDbClient = new DynamoDbTransactionClient(config.dynamoDBCurrencyTable);
 
 const lambdaHandler = async (event: CheckTransactionStatusLambdaPayload) => {
   const { id } = event.pathParameters;

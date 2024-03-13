@@ -6,8 +6,8 @@ import { TransactionDto } from "../helpers/to-transaction-dto";
 export class DynamoDbTransactionClient {
   private client: DynamoDBDocumentClient;
 
-  constructor(private tableName: string, private isOffline: boolean) {
-    this.client = createDynamoDBClient(this.isOffline);
+  constructor(private tableName: string) {
+    this.client = createDynamoDBClient();
   }
 
   async initTransaction({ transactionId, createdAt, ...transaction }: TransactionDto): Promise<void> {

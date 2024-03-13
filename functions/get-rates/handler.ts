@@ -16,11 +16,9 @@ import { createConfig } from "./config";
 import { DynamoDbCurrencyClient } from "./dynamodb/dynamodb-client";
 import { GetRatesLambdaPayload, getRatesLambdaSchema } from "./event.schema";
 
-const isOffline = process.env.IS_OFFLINE === "true";
-
 const config = createConfig(process.env);
 
-const dynamoDbClient = new DynamoDbCurrencyClient(config.dynamoDBCurrencyTable, isOffline);
+const dynamoDbClient = new DynamoDbCurrencyClient(config.dynamoDBCurrencyTable);
 
 const lambdaHandler = async (event: GetRatesLambdaPayload) => {
   const response = await dynamoDbClient.getCurrencyRates(config.baseImporterCurrency);

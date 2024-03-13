@@ -6,8 +6,8 @@ import { CurrencyRatesData } from "../../rates-importer/helpers/to-currency-rate
 export class DynamoDbCurrencyClient {
   private client: DynamoDBDocumentClient;
 
-  constructor(private tableName: string, private isOffline: boolean) {
-    this.client = createDynamoDBClient(this.isOffline);
+  constructor(private tableName: string) {
+    this.client = createDynamoDBClient();
   }
 
   async getCurrencyRates(baseImporterCurrency: string) {
