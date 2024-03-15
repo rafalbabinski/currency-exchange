@@ -20,6 +20,8 @@ export class DynamoDbCurrencyClient {
       Item: {
         pk: `currencyRate#${baseImporterCurrency}`,
         sk: `createdAt#${createdAt}`,
+        baseImporterCurrency,
+        createdAt,
         ...Object.assign({}, ...ratesItems),
       },
       TableName: this.tableName,

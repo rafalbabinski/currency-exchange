@@ -57,11 +57,11 @@ const lambdaHandler = async (event: CheckTransactionStatusLambdaPayload) => {
   });
 
   if (hasTransactionExpired) {
-    const newStatus = TransactionStatus.Expired;
+    const transactionStatus = TransactionStatus.Expired;
 
-    await dynamoDbClient.updateTransactionStatus(response.pk, response.sk, newStatus);
+    await dynamoDbClient.updateTransactionStatus({ id, createdAt, transactionStatus });
 
-    return awsLambdaResponse(StatusCodes.OK, { success: true, transactionStatus: newStatus, transactionDetails });
+    return awsLambdaResponse(StatusCodes.OK, { success: true, transactionStatus, transactionDetails });
   }
 
   return awsLambdaResponse(StatusCodes.OK, {

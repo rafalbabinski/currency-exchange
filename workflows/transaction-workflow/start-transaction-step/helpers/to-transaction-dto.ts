@@ -25,7 +25,7 @@ export const toTransactionDto = (data: Data): TransactionDto => {
 
   return {
     createdAt,
-    ...data,
     transactionStatus: TransactionStatus.Started,
+    ...data,
   };
 };

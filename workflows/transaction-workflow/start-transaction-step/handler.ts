@@ -15,6 +15,7 @@ const dynamoDbCurrencyClient = new DynamoDbCurrencyClient(config.dynamoDBCurrenc
 
 export const handle = async (event: StartTransactionStepLambdaPayload, _context: Context) => {
   const { currencyFrom, currencyFromAmount, currencyTo } = event.body;
+  const { transactionId } = event;
 
   const currencyRates = await dynamoDbCurrencyClient.getCurrencyRates(currencyFrom);
 
@@ -27,9 +28,9 @@ export const handle = async (event: StartTransactionStepLambdaPayload, _context:
 
   const currencyToAmount = Number((exchangeRate * currencyFromAmount).toFixed(2));
 
-  const transaction = { ...event.body, currencyToAmount, exchangeRate };
+  const transaction = { transactionId, currencyToAmount, exchangeRate, ...event.body };
 
-  const mappedTransaction = toTransactionDto({ transactionId: event.transactionId, ...transaction });
+  const mappedTransaction = toTransactionDto(transaction);
 
   await dynamoDbTransactionClient.initTransaction(mappedTransaction);
 };
