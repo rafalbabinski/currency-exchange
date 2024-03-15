@@ -27,7 +27,7 @@ const lambdaHandler = async (event: CheckTransactionStatusLambdaPayload) => {
   const response = await dynamoDbClient.getTransaction(id);
   const { createdAt, transactionStatus } = response;
 
-  const transactionDetails = { ...response, pk: undefined, sk: undefined };
+  const transactionDetails = { ...response, pk: undefined, sk: undefined, transactionStatus: undefined };
 
   if (!response) {
     return awsLambdaResponse(StatusCodes.NOT_FOUND, {
