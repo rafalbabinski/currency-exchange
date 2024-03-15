@@ -14,7 +14,6 @@ import { DynamoDbTransactionClient } from "./dynamodb/dynamodb-client";
 import { httpErrorHandlerConfigured } from "../../shared/middleware/http-error-handler-configured";
 import { errorLambdaResponse } from "../../shared/middleware/error-lambda-response";
 import { TransactionStatus } from "../../shared/types/transaction.types";
-import { TransactionData } from "../../workflows/transaction-workflow/start-transaction-step/helpers/to-transaction-dto";
 import { createConfig } from "./config";
 import { checkTransactionExpired } from "./helpers/check-transaction-expired";
 
@@ -26,6 +25,9 @@ const lambdaHandler = async (event: CheckTransactionStatusLambdaPayload) => {
   const { id } = event.pathParameters;
 
   const response = await dynamoDbClient.getTransaction(id);
+  const { createdAt, transactionStatus } = response;
+
+  const transactionDetails = { ...response, pk: undefined, sk: undefined };
 
   if (!response) {
     return awsLambdaResponse(StatusCodes.NOT_FOUND, {
@@ -33,23 +35,13 @@ const lambdaHandler = async (event: CheckTransactionStatusLambdaPayload) => {
     });
   }
 
-  const transactionDetails: Partial<TransactionData> = {
-    currencyFrom: response.currencyFrom,
-    currencyFromAmount: response.currencyFromAmount,
-    currencyTo: response.currencyTo,
-    currencyToAmount: response.currencyToAmount,
-    exchangeRate: response.exchangeRate,
-  };
-
-  if (response.transactionStatus !== "started") {
+  if (transactionStatus !== "started") {
     return awsLambdaResponse(StatusCodes.OK, {
       success: true,
-      transactionStatus: response.transactionStatus,
+      transactionStatus,
       transactionDetails,
     });
   }
-
-  const createdAt = response.sk.replace("createdAt#", "");
 
   const hasTransactionExpired = checkTransactionExpired({
     createdAt,
@@ -57,16 +49,20 @@ const lambdaHandler = async (event: CheckTransactionStatusLambdaPayload) => {
   });
 
   if (hasTransactionExpired) {
-    const transactionStatus = TransactionStatus.Expired;
+    const newTransactionStatus = TransactionStatus.Expired;
 
     await dynamoDbClient.updateTransactionStatus({ id, createdAt, transactionStatus });
 
-    return awsLambdaResponse(StatusCodes.OK, { success: true, transactionStatus, transactionDetails });
+    return awsLambdaResponse(StatusCodes.OK, {
+      success: true,
+      transactionStatus: newTransactionStatus,
+      transactionDetails,
+    });
   }
 
   return awsLambdaResponse(StatusCodes.OK, {
     success: true,
-    transactionStatus: response.transactionStatus,
+    transactionStatus,
     transactionDetails,
   });
 };
