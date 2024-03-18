@@ -29,7 +29,7 @@ export const handle = async (event: StartTransactionStepLambdaPayload, _context:
 
   const currencyToAmount = Number((exchangeRate * currencyFromAmount).toFixed(2));
 
-  const transaction = { transactionId, taskToken, ...event.body, currencyToAmount, exchangeRate };
+  const transaction = { transactionId, taskToken, currencyToAmount, exchangeRate, ...event.body };
 
   const mappedTransaction = toTransactionDto(transaction);
 

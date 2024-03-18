@@ -31,15 +31,21 @@ export class DynamoDbTransactionClient {
     return Items?.[0] as TransactionData;
   }
 
-  async updateTransactionStatus(
-    pk: string,
-    sk: string,
-    { transactionStatus, updatedAt }: { transactionStatus: TransactionStatus; updatedAt: string },
-  ): Promise<void> {
+  async updateTransactionStatus({
+    id,
+    createdAt,
+    updatedAt,
+    transactionStatus,
+  }: {
+    id: string;
+    createdAt: string;
+    updatedAt: string;
+    transactionStatus: TransactionStatus;
+  }): Promise<void> {
     const updateItemCommand = new UpdateCommand({
       Key: {
-        pk,
-        sk,
+        pk: `transaction#${id}`,
+        sk: `createdAt#${createdAt}`,
       },
       UpdateExpression: "set transactionStatus = :transactionStatus, updatedAt = :updatedAt",
       ExpressionAttributeValues: {
@@ -52,23 +58,26 @@ export class DynamoDbTransactionClient {
     await this.client.send(updateItemCommand);
   }
 
-  async updateTransactionUserData(
-    pk: string,
-    sk: string,
-    {
-      firstName,
-      lastName,
-      city,
-      zipCode,
-      email,
-      transactionStatus,
-      updatedAt,
-    }: SaveUserDataLambdaPayload["body"] & { transactionStatus: TransactionStatus; updatedAt: string },
-  ): Promise<void> {
+  async updateTransactionUserData({
+    id,
+    createdAt,
+    updatedAt,
+    firstName,
+    lastName,
+    city,
+    zipCode,
+    email,
+    transactionStatus,
+  }: SaveUserDataLambdaPayload["body"] & {
+    id: string;
+    createdAt: string;
+    updatedAt: string;
+    transactionStatus: TransactionStatus;
+  }): Promise<void> {
     const updateItemCommand = new UpdateCommand({
       Key: {
-        pk,
-        sk,
+        pk: `transaction#${id}`,
+        sk: `createdAt#${createdAt}`,
       },
       UpdateExpression:
         "set firstName = :firstName, lastName = :lastName, city = :city, zipCode = :zipCode, email = :email, transactionStatus = :transactionStatus, updatedAt = :updatedAt",
