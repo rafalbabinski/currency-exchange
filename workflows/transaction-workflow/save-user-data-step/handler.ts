@@ -11,15 +11,15 @@ const config = createConfig(process.env);
 const dynamoDbClient = new DynamoDbTransactionClient(config.dynamoDBCurrencyTable);
 
 export const handle = async (event: SaveUserDataStepLambdaPayload, _context: Context) => {
-  const { transactionId, taskToken } = event;
+  const { transactionId: id, taskToken } = event;
 
-  const response = await dynamoDbClient.getTransaction(transactionId);
+  const response = await dynamoDbClient.getTransaction(id);
 
   if (!response) {
     return "No transaction with given id";
   }
 
-  const createdAt = response.sk.replace("createdAt#", "");
+  const { createdAt } = response;
   const updatedAt = new Date().toISOString();
 
   const hasTransactionExpired = checkTransactionExpired({
@@ -30,7 +30,7 @@ export const handle = async (event: SaveUserDataStepLambdaPayload, _context: Con
   if (hasTransactionExpired) {
     const transactionStatus = TransactionStatus.Expired;
 
-    await dynamoDbClient.updateTransactionStatus(response.pk, response.sk, { transactionStatus, updatedAt });
+    await dynamoDbClient.updateTransactionStatus({ id, createdAt, updatedAt, transactionStatus });
 
     return {
       success: false,
@@ -39,11 +39,13 @@ export const handle = async (event: SaveUserDataStepLambdaPayload, _context: Con
 
   const transactionStatus = TransactionStatus.WaitingForPayment;
 
-  await dynamoDbClient.updateTransactionUserData(response.pk, response.sk, {
-    ...event.body,
-    transactionStatus,
+  await dynamoDbClient.updateTransactionUserData({
+    id,
+    createdAt,
     updatedAt,
+    transactionStatus,
     taskToken,
+    ...event.body,
   });
 
   return {

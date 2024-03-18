@@ -9,19 +9,24 @@ const config = createConfig(process.env);
 const dynamoDbClient = new DynamoDbTransactionClient(config.dynamoDBCurrencyTable);
 
 export const handle = async (event: { [key: string]: any }, _context: Context) => {
-  const { transactionId } = event;
+  const { transactionId: id } = event;
 
-  const response = await dynamoDbClient.getTransaction(transactionId);
+  const response = await dynamoDbClient.getTransaction(id);
 
   if (!response) {
     return "No transaction with given id";
   }
 
+  const { createdAt } = response;
   const updatedAt = new Date().toISOString();
 
-  await dynamoDbClient.updateTransactionStatus(response.pk, response.sk, {
-    transactionStatus: TransactionStatus.WaitingForPaymentStatus,
+  const transactionStatus = TransactionStatus.WaitingForPaymentStatus;
+
+  await dynamoDbClient.updateTransactionStatus({
+    id,
+    createdAt,
     updatedAt,
+    transactionStatus,
   });
 
   return {

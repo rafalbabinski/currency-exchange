@@ -4,14 +4,14 @@ export interface Rates {
   [currencyCode: string]: string | number;
 }
 
-export interface CurrencyRatesData extends Rates {
-  pk: string;
-  sk: string;
-}
-
 export interface CurrencyRatesDto extends Rates {
   baseImporterCurrency: string;
   createdAt: string;
+}
+
+export interface CurrencyRatesData extends CurrencyRatesDto {
+  pk: string;
+  sk: string;
 }
 
 export const toCurrencyRatesDto = (response: RatesResponse, currencyScope: string): CurrencyRatesDto => {

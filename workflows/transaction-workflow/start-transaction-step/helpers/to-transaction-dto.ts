@@ -15,7 +15,7 @@ export interface TransactionDto extends Data {
   transactionStatus: TransactionStatus;
 }
 
-export interface TransactionData extends Data {
+export interface TransactionData extends TransactionDto {
   pk: string;
   sk: string;
   transactionStatus: TransactionStatus;
@@ -26,7 +26,7 @@ export const toTransactionDto = (data: Data): TransactionDto => {
 
   return {
     createdAt,
-    ...data,
     transactionStatus: TransactionStatus.Started,
+    ...data,
   };
 };
