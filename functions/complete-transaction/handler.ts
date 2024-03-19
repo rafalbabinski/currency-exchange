@@ -51,7 +51,7 @@ const lambdaHandler = async (event: CompleteTransactionLambdaPayload) => {
     month: Number(expirationMonth),
     year: Number(expirationYear),
     transactionId: id,
-    statusUrl: "http://localhost:3000/test",
+    statusUrl: `http://localhost:1337/local/transaction/${id}/payment-notification`,
   });
 
   const client = createStepFunctionsClient();

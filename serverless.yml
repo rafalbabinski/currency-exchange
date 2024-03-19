@@ -103,6 +103,7 @@ functions:
   - ${file(workflows/transaction-workflow/error-handler-step/function.yml)}
   - ${file(functions/complete-transaction/function.yml)}
   - ${file(workflows/transaction-workflow/complete-transaction-step/function.yml)}
+  - ${file(functions/receive-payment-notification/function.yml)}
   # PLOP_ADD_LAMBDA
 
 stepFunctions:
