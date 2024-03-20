@@ -15,7 +15,6 @@ import { calculateExchangeRate } from "./helpers/calculate-exchange-rates";
 import { createConfig } from "./config";
 import { DynamoDbCurrencyClient } from "./dynamodb/dynamodb-client";
 import { GetRatesLambdaPayload, getRatesLambdaSchema } from "./event.schema";
-import { winstonLogger } from "../../shared/logger";
 
 const config = createConfig(process.env);
 
@@ -23,9 +22,6 @@ const dynamoDbClient = new DynamoDbCurrencyClient(config.dynamoDBCurrencyTable);
 
 const lambdaHandler = async (event: GetRatesLambdaPayload) => {
   const response = await dynamoDbClient.getCurrencyRates(config.baseImporterCurrency);
-
-  winstonLogger.info("----response------");
-  winstonLogger.info(JSON.stringify(response));
 
   if (!response) {
     throw new AppError("No currency rates available");
@@ -35,9 +31,6 @@ const lambdaHandler = async (event: GetRatesLambdaPayload) => {
     currencyFrom: event.queryStringParameters.currencyFrom,
     currencyRates: response,
   });
-
-  winstonLogger.info("----exchangeRates------");
-  winstonLogger.info(JSON.stringify(exchangeRates));
 
   return awsLambdaResponse(StatusCodes.OK, {
     success: true,

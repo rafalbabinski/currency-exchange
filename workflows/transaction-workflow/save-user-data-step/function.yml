@@ -4,12 +4,3 @@ save-user-data-step-lambda:
   environment:
     DYNAMODB_CURRENCY_TABLE: ${self:custom.environment.DYNAMODB_CURRENCY_TABLE}
     TIME_TO_COMPLETE_TRANSACTION: ${env:TIME_TO_COMPLETE_TRANSACTION}
-  iamRoleStatements:
-    - Effect: Allow
-      Action:
-        - dynamodb:GetItem
-        - dynamodb:PutItem
-      Resource:
-        Fn::GetAtt:
-          - currencyTable
-          - Arn

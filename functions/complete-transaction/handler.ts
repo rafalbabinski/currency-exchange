@@ -17,7 +17,6 @@ import { SendTaskSuccessCommand, SendTaskSuccessInput } from "@aws-sdk/client-sf
 import { TransactionStatus } from "../../shared/types/transaction.types";
 import { createConfig } from "./config";
 import { createPaymentApiClient } from "./api/payment";
-import { winstonLogger } from "../../shared/logger";
 
 const config = createConfig(process.env);
 
@@ -42,9 +41,6 @@ const lambdaHandler = async (event: CompleteTransactionLambdaPayload) => {
       error: "Transaction status is not correct",
     });
   }
-
-  winstonLogger.info("------------");
-  winstonLogger.info(config.apiGatewayUrl);
 
   await paymentApiClient.processPayment({
     number: cardNumber,

@@ -3,12 +3,3 @@ complete-transaction-step-lambda:
   vpc: ${self:custom.vpc}
   environment:
     DYNAMODB_CURRENCY_TABLE: ${self:custom.environment.DYNAMODB_CURRENCY_TABLE}
-  iamRoleStatements:
-    - Effect: Allow
-      Action:
-        - dynamodb:GetItem
-        - dynamodb:PutItem
-      Resource:
-        Fn::GetAtt:
-          - currencyTable
-          - Arn

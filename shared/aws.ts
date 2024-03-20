@@ -1,7 +1,6 @@
 import { StatusCodes } from "http-status-codes";
 import { AppError } from "./errors/app.error";
 import { HttpError } from "./errors/http.error";
-import { winstonLogger } from "./logger";
 
 export const awsLambdaResponse = (statusCode: number, body?: any) => ({
   statusCode,
@@ -9,9 +8,6 @@ export const awsLambdaResponse = (statusCode: number, body?: any) => ({
 });
 
 export const createErrorResponse = (error: any) => {
-  winstonLogger.info("----error------");
-  winstonLogger.info(JSON.stringify(error));
-
   if (error instanceof HttpError) {
     return awsLambdaResponse(error.status, error.message);
   }
