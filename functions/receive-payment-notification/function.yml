@@ -7,7 +7,6 @@ receive-payment-notification:
     - http:
         path: /transaction/{id}/payment-notification
         method: POST
-        private: true
         cors: true
         request: 
             parameters: 

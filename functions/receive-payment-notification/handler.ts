@@ -48,7 +48,7 @@ const lambdaHandler = async (event: ReceivePaymentNotificationLambdaPayload) => 
 
     return awsLambdaResponse(StatusCodes.OK, {
       success: true,
-      transactionStatus,
+      transactionStatus: newTransactionStatus,
     });
   }
 
@@ -59,7 +59,7 @@ const lambdaHandler = async (event: ReceivePaymentNotificationLambdaPayload) => 
 
     return awsLambdaResponse(StatusCodes.OK, {
       success: true,
-      transactionStatus,
+      transactionStatus: newTransactionStatus,
     });
   }
 
