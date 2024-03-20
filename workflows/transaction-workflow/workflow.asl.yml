@@ -10,7 +10,7 @@ States:
     Type: Task
     Resource: arn:aws:states:::lambda:invoke.waitForTaskToken
     Parameters:
-      FunctionName: !GetAtt start-transaction-lambda.Arn
+      FunctionName: !GetAtt start-transaction-step-lambda.Arn
       Payload:
         taskToken.$: $$.Task.Token
         transactionId.$: $.transactionId

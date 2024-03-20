@@ -73,6 +73,7 @@ const lambdaHandler = async (event: CompleteTransactionLambdaPayload) => {
 
   return awsLambdaResponse(StatusCodes.OK, {
     success: true,
+    url: config.apiGatewayUrl,
   });
 };
 
