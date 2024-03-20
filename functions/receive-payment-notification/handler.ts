@@ -2,6 +2,7 @@ import middy from "@middy/core";
 import httpEventNormalizer from "@middy/http-event-normalizer";
 import httpHeaderNormalizer from "@middy/http-header-normalizer";
 import jsonBodyParser from "@middy/http-json-body-parser";
+import { APIGatewayEvent } from "aws-lambda";
 import { StatusCodes } from "http-status-codes";
 
 import { awsLambdaResponse } from "../../shared/aws";
@@ -19,9 +20,18 @@ const config = createConfig(process.env);
 
 const dynamoDbClient = new DynamoDbTransactionClient(config.dynamoDBCurrencyTable);
 
-const lambdaHandler = async (event: ReceivePaymentNotificationLambdaPayload) => {
+const lambdaHandler = async (event: ReceivePaymentNotificationLambdaPayload & APIGatewayEvent) => {
   const { id } = event.pathParameters;
   const { status } = event.body;
+
+  const origin = event.headers.origin || event.headers.referer;
+
+  if (origin !== config.paymentApiUrl) {
+    return awsLambdaResponse(StatusCodes.FORBIDDEN, {
+      error: "Origin not allowed",
+      detail: JSON.stringify(event),
+    });
+  }
 
   const response = await dynamoDbClient.getTransaction(id);
 

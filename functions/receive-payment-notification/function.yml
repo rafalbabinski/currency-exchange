@@ -3,6 +3,7 @@ receive-payment-notification:
   vpc: ${self:custom.vpc}
   environment:
     DYNAMODB_CURRENCY_TABLE: ${self:custom.environment.DYNAMODB_CURRENCY_TABLE}
+    PAYMENT_API_URL: ${env:PAYMENT_API_URL}
   events:
     - http:
         path: /transaction/{id}/payment-notification
