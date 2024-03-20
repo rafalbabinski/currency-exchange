@@ -6,6 +6,7 @@ complete-transaction:
     PAYMENT_API_URL: ${env:PAYMENT_API_URL}
     PAYMENT_API_HEADER: ${env:PAYMENT_API_HEADER}
     PAYMENT_API_TOKEN: ${env:PAYMENT_API_TOKEN}
+    API_GATEWAY_URL: { 'Fn::Join': [ '', [ 'https://', { 'Ref': 'ApiGatewayRestApi' }, '.execute-api.${self:provider.region}.amazonaws.com/${self:provider.stage}' ] ] }
   events:
     - http:
         path: /transaction/{id}/payment

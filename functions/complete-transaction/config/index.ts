@@ -5,6 +5,7 @@ const loadEnvs = (env: any) => ({
   dynamoDBCurrencyTable: env.DYNAMODB_CURRENCY_TABLE,
   paymentApiHeader: env.PAYMENT_API_HEADER,
   paymentApiToken: env.PAYMENT_API_TOKEN,
+  apiGatewayUrl: env.API_GATEWAY_URL,
 });
 
 const validateConfig = (config: any) => {
@@ -12,6 +13,7 @@ const validateConfig = (config: any) => {
     dynamoDBCurrencyTable: z.string().min(1),
     paymentApiHeader: z.string().min(1),
     paymentApiToken: z.string().min(1),
+    apiGatewayUrl: z.string().min(1),
   });
 
   try {
