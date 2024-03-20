@@ -78,6 +78,7 @@ provider:
           - lambda:InvokeFunction
           - lambda:InvokeAsync
           - states:StartExecution
+          - states:SendTaskSuccess
         Resource:
           - "*"
       - Effect: Allow
