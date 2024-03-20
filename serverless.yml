@@ -84,6 +84,7 @@ provider:
       - Effect: Allow
         Action:
           - dynamodb:PutItem
+          - dynamodb:UpdateItem
           - dynamodb:Query
         Resource:
           Fn::GetAtt:
