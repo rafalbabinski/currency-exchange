@@ -18,6 +18,8 @@ import { TransactionStatus } from "../../shared/types/transaction.types";
 import { createConfig } from "./config";
 import { createPaymentApiClient } from "./api/payment";
 
+const isOffline = process.env.IS_OFFLINE === "true";
+
 const config = createConfig(process.env);
 
 const paymentApiClient = createPaymentApiClient();
@@ -42,6 +44,8 @@ const lambdaHandler = async (event: CompleteTransactionLambdaPayload) => {
     });
   }
 
+  const statusBaseUrl = isOffline ? "http://localhost:1337/local" : config.apiGatewayUrl;
+
   await paymentApiClient.processPayment({
     number: cardNumber,
     owner: cardholderName,
@@ -51,7 +55,7 @@ const lambdaHandler = async (event: CompleteTransactionLambdaPayload) => {
     month: Number(expirationMonth),
     year: Number(expirationYear),
     transactionId: id,
-    statusUrl: `http://localhost:1337/local/transaction/${id}/payment-notification`,
+    statusUrl: `${statusBaseUrl}/transaction/${id}/payment-notification`,
   });
 
   const client = createStepFunctionsClient();
@@ -69,7 +73,6 @@ const lambdaHandler = async (event: CompleteTransactionLambdaPayload) => {
 
   return awsLambdaResponse(StatusCodes.OK, {
     success: true,
-    url: config.apiGatewayUrl,
   });
 };
 
