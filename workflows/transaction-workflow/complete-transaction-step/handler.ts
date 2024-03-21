@@ -6,8 +6,8 @@ const config = createConfig(process.env);
 
 const dynamoDbClient = new DynamoDbTransactionClient(config.dynamoDBCurrencyTable);
 
-export const handle = async (event: { transactionId: string }) => {
-  const { transactionId: id } = event;
+export const handle = async (event: { transactionId: string; securityPaymentKey: string }) => {
+  const { transactionId: id, securityPaymentKey } = event;
 
   const response = await dynamoDbClient.getTransaction(id);
 
@@ -25,6 +25,7 @@ export const handle = async (event: { transactionId: string }) => {
     createdAt,
     updatedAt,
     transactionStatus,
+    securityPaymentKey,
   });
 
   return {

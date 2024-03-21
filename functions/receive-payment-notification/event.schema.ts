@@ -8,6 +8,13 @@ export const receivePaymentNotificationLambdaSchema = z.object({
       })
       .min(1, "status can't be empty"),
   }),
+  queryStringParameters: z.object({
+    key: z
+      .string({
+        required_error: "key is required",
+      })
+      .min(1, "key can't be empty"),
+  }),
   pathParameters: z.object({
     id: z.string(),
   }),

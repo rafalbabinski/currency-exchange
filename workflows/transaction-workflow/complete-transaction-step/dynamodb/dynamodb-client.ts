@@ -35,21 +35,25 @@ export class DynamoDbTransactionClient {
     createdAt,
     updatedAt,
     transactionStatus,
+    securityPaymentKey,
   }: {
     id: string;
     createdAt: string;
     updatedAt: string;
     transactionStatus: TransactionStatus;
+    securityPaymentKey: string;
   }): Promise<void> {
     const updateItemCommand = new UpdateCommand({
       Key: {
         pk: `transaction#${id}`,
         sk: `createdAt#${createdAt}`,
       },
-      UpdateExpression: "set transactionStatus = :transactionStatus, updatedAt = :updatedAt",
+      UpdateExpression:
+        "set transactionStatus = :transactionStatus, updatedAt = :updatedAt, securityPaymentKey = :securityPaymentKey",
       ExpressionAttributeValues: {
         ":transactionStatus": transactionStatus,
         ":updatedAt": updatedAt,
+        ":securityPaymentKey": securityPaymentKey,
       },
       TableName: this.tableName,
     });

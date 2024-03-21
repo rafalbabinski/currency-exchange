@@ -17,6 +17,7 @@ import { SendTaskSuccessCommand, SendTaskSuccessInput } from "@aws-sdk/client-sf
 import { TransactionStatus } from "../../shared/types/transaction.types";
 import { createConfig } from "./config";
 import { createPaymentApiClient } from "./api/payment";
+import { nanoid } from "nanoid";
 
 const isOffline = process.env.IS_OFFLINE === "true";
 
@@ -46,6 +47,8 @@ const lambdaHandler = async (event: CompleteTransactionLambdaPayload) => {
 
   const statusBaseUrl = isOffline ? "http://localhost:1337/local" : config.apiGatewayUrl;
 
+  const securityPaymentKey = nanoid(100);
+
   await paymentApiClient.processPayment({
     number: cardNumber,
     owner: cardholderName,
@@ -55,7 +58,7 @@ const lambdaHandler = async (event: CompleteTransactionLambdaPayload) => {
     month: Number(expirationMonth),
     year: Number(expirationYear),
     transactionId: id,
-    statusUrl: `${statusBaseUrl}/transaction/${id}/payment-notification`,
+    statusUrl: `${statusBaseUrl}/transaction/${id}/payment-notification?key=${securityPaymentKey}`,
   });
 
   const client = createStepFunctionsClient();
@@ -64,6 +67,7 @@ const lambdaHandler = async (event: CompleteTransactionLambdaPayload) => {
     taskToken: transaction.taskToken,
     output: JSON.stringify({
       transactionId: id,
+      securityPaymentKey,
     }),
   };
 

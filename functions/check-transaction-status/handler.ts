@@ -25,6 +25,13 @@ const lambdaHandler = async (event: CheckTransactionStatusLambdaPayload) => {
   const { id } = event.pathParameters;
 
   const response = await dynamoDbClient.getTransaction(id);
+
+  if (!response) {
+    return awsLambdaResponse(StatusCodes.NOT_FOUND, {
+      error: "No transaction with given id",
+    });
+  }
+
   const { createdAt, transactionStatus } = response;
 
   const transactionDetails = {
@@ -32,14 +39,8 @@ const lambdaHandler = async (event: CheckTransactionStatusLambdaPayload) => {
     pk: undefined,
     sk: undefined,
     taskToken: undefined,
-    transactionStatus: undefined,
+    securityPaymentKey: undefined,
   };
-
-  if (!response) {
-    return awsLambdaResponse(StatusCodes.NOT_FOUND, {
-      error: "No transaction with given id",
-    });
-  }
 
   if (transactionStatus !== "started") {
     return awsLambdaResponse(StatusCodes.OK, {

@@ -19,6 +19,7 @@ export interface TransactionData extends TransactionDto {
   pk: string;
   sk: string;
   transactionStatus: TransactionStatus;
+  securityPaymentKey?: string;
 }
 
 export const toTransactionDto = (data: Data): TransactionDto => {

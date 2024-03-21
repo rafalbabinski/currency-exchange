@@ -55,6 +55,7 @@ States:
       Payload:
         taskToken.$: $$.Task.Token
         transactionId.$: $.transactionId
+        securityPaymentKey.$: $.securityPaymentKey
     TimeoutSeconds: 600
     Catch:
       - ErrorEquals:
