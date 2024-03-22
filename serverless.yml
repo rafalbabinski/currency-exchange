@@ -30,6 +30,8 @@ custom:
     stepFunctionsEndpoint: http://127.0.0.1:8083
     TaskResourceMapping:
       startTransactionStep: arn:aws:lambda:us-east-1:101010101010:function:${env:APP_NAME, 'tshExampleApp'}-${opt:stage, 'dev'}-start-transaction-step-lambda
+      saveUserDataStepStep: arn:aws:lambda:us-east-1:101010101010:function:${env:APP_NAME, 'tshExampleApp'}-${opt:stage, 'dev'}-save-user-data-step-lambda
+      errorHandlerStepStep: arn:aws:lambda:us-east-1:101010101010:function:${env:APP_NAME, 'tshExampleApp'}-${opt:stage, 'dev'}-error-handler-step-lambda
       # PLOP_ADD_WORKFLOW_STEP_LOCAL_STEP
   dynamodb:
     stages:
@@ -95,6 +97,9 @@ functions:
   - ${file(functions/start-transaction/function.yml)}
   - ${file(functions/check-transaction-status/function.yml)}
   - ${file(workflows/transaction-workflow/start-transaction-step/function.yml)}
+  - ${file(functions/save-user-data/function.yml)}
+  - ${file(workflows/transaction-workflow/save-user-data-step/function.yml)}
+  - ${file(workflows/transaction-workflow/error-handler-step/function.yml)}
   # PLOP_ADD_LAMBDA
 
 stepFunctions:

@@ -6,34 +6,25 @@ import { StatusCodes } from "http-status-codes";
 
 import { awsLambdaResponse } from "../../shared/aws";
 import { inputOutputLoggerConfigured } from "../../shared/middleware/input-output-logger-configured";
+import { SaveUserDataLambdaPayload, saveUserDataLambdaSchema } from "./event.schema";
 import { zodValidator } from "../../shared/middleware/zod-validator";
 import { queryParser } from "../../shared/middleware/query-parser";
 import { httpCorsConfigured } from "../../shared/middleware/http-cors-configured";
-import { DynamoDbTransactionClient } from "./dynamodb/dynamodb-client";
 import { httpErrorHandlerConfigured } from "../../shared/middleware/http-error-handler-configured";
 import { errorLambdaResponse } from "../../shared/middleware/error-lambda-response";
-import { TransactionStatus } from "../../shared/types/transaction.types";
-import { checkTransactionExpired } from "../../shared/utils/check-transaction-expired";
+import { createStepFunctionsClient } from "../../shared/step-functions/step-functions-client-factory";
+import { SendTaskSuccessCommand, SendTaskSuccessInput } from "@aws-sdk/client-sfn";
+import { DynamoDbTransactionClient } from "../check-transaction-status/dynamodb/dynamodb-client";
 import { createConfig } from "./config";
-import { CheckTransactionStatusLambdaPayload, checkTransactionStatusLambdaSchema } from "./event.schema";
 
 const config = createConfig(process.env);
 
 const dynamoDbClient = new DynamoDbTransactionClient(config.dynamoDBCurrencyTable);
 
-const lambdaHandler = async (event: CheckTransactionStatusLambdaPayload) => {
+const lambdaHandler = async (event: SaveUserDataLambdaPayload) => {
   const { id } = event.pathParameters;
 
   const response = await dynamoDbClient.getTransaction(id);
-  const { createdAt, transactionStatus } = response;
-
-  const transactionDetails = {
-    ...response,
-    pk: undefined,
-    sk: undefined,
-    taskToken: undefined,
-    transactionStatus: undefined,
-  };
 
   if (!response) {
     return awsLambdaResponse(StatusCodes.NOT_FOUND, {
@@ -41,36 +32,22 @@ const lambdaHandler = async (event: CheckTransactionStatusLambdaPayload) => {
     });
   }
 
-  if (transactionStatus !== "started") {
-    return awsLambdaResponse(StatusCodes.OK, {
-      success: true,
-      transactionStatus,
-      transactionDetails,
-    });
-  }
+  const client = createStepFunctionsClient();
 
-  const hasTransactionExpired = checkTransactionExpired({
-    createdAt,
-    timeToCompleteTransaction: Number(config.timeToCompleteTransaction),
-  });
+  const input: SendTaskSuccessInput = {
+    taskToken: response.taskToken,
+    output: JSON.stringify({
+      transactionId: id,
+      body: event.body,
+    }),
+  };
 
-  if (hasTransactionExpired) {
-    const newTransactionStatus = TransactionStatus.Expired;
-    const updatedAt = new Date().toISOString();
+  const command = new SendTaskSuccessCommand(input);
 
-    await dynamoDbClient.updateTransactionStatus({ id, createdAt, updatedAt, transactionStatus });
-
-    return awsLambdaResponse(StatusCodes.OK, {
-      success: true,
-      transactionStatus: newTransactionStatus,
-      transactionDetails,
-    });
-  }
+  await client.send(command);
 
   return awsLambdaResponse(StatusCodes.OK, {
     success: true,
-    transactionStatus,
-    transactionDetails,
   });
 };
 
@@ -81,7 +58,7 @@ export const handle = middy()
   .use(httpHeaderNormalizer())
   .use(httpCorsConfigured)
   .use(queryParser())
-  .use(zodValidator(checkTransactionStatusLambdaSchema))
+  .use(zodValidator(saveUserDataLambdaSchema))
   .use(httpErrorHandlerConfigured)
   .use(errorLambdaResponse)
   .handler(lambdaHandler);

@@ -2,4 +2,5 @@ import { StartTransactionLambdaPayload } from "../../../functions/start-transact
 
 export interface StartTransactionStepLambdaPayload extends StartTransactionLambdaPayload {
   transactionId: string;
+  taskToken: string;
 }

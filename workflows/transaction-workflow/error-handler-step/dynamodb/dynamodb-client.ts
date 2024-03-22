@@ -1,8 +1,8 @@
 import { DynamoDBDocumentClient, QueryCommand, UpdateCommand } from "@aws-sdk/lib-dynamodb";
 
-import { createDynamoDBClient } from "../../../shared/dynamodb/dynamodb-client-factory";
-import { TransactionData } from "../../../workflows/transaction-workflow/start-transaction-step/helpers/to-transaction-dto";
-import { TransactionStatus } from "../../../shared/types/transaction.types";
+import { createDynamoDBClient } from "../../../../shared/dynamodb/dynamodb-client-factory";
+import { TransactionData } from "../../start-transaction-step/helpers/to-transaction-dto";
+import { TransactionStatus } from "../../../../shared/types/transaction.types";
 
 export class DynamoDbTransactionClient {
   private client: DynamoDBDocumentClient;
@@ -30,26 +30,30 @@ export class DynamoDbTransactionClient {
     return Items?.[0] as TransactionData;
   }
 
-  async updateTransactionStatus({
-    id,
-    createdAt,
-    updatedAt,
-    transactionStatus,
-  }: {
-    id: string;
-    createdAt: string;
-    updatedAt: string;
-    transactionStatus: TransactionStatus;
-  }): Promise<void> {
+  async updateTransactionStatus(
+    pk: string,
+    sk: string,
+    {
+      transactionStatus,
+      updatedAt,
+      error,
+    }: {
+      transactionStatus: TransactionStatus;
+      updatedAt: string;
+      error: string | null;
+    },
+  ): Promise<void> {
     const updateItemCommand = new UpdateCommand({
       Key: {
-        pk: `transaction#${id}`,
-        sk: `createdAt#${createdAt}`,
+        pk,
+        sk,
       },
-      UpdateExpression: "set transactionStatus = :transactionStatus, updatedAt = :updatedAt",
+      UpdateExpression:
+        "set transactionStatus = :transactionStatus, updatedAt = :updatedAt, errorReason = :errorReason",
       ExpressionAttributeValues: {
         ":transactionStatus": transactionStatus,
         ":updatedAt": updatedAt,
+        ":errorReason": error,
       },
       TableName: this.tableName,
     });

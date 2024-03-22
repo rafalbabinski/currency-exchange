@@ -18,6 +18,7 @@ describe("toTransactionDto", () => {
   it("should create a TransactionDto with the correct properties", () => {
     const input: Data = {
       transactionId: "12345",
+      taskToken: "6789",
       currencyFrom: "USD",
       currencyFromAmount: 100,
       currencyTo: "EUR",
@@ -29,6 +30,7 @@ describe("toTransactionDto", () => {
 
     const expectedDto: TransactionDto = {
       transactionId: "12345",
+      taskToken: "6789",
       currencyFrom: "USD",
       currencyFromAmount: 100,
       currencyTo: "EUR",

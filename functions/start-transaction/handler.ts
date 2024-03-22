@@ -2,6 +2,7 @@ import middy from "@middy/core";
 import httpEventNormalizer from "@middy/http-event-normalizer";
 import httpHeaderNormalizer from "@middy/http-header-normalizer";
 import jsonBodyParser from "@middy/http-json-body-parser";
+
 import { nanoid } from "nanoid";
 import { StatusCodes } from "http-status-codes";
 import { StartExecutionCommand, StartExecutionCommandInput } from "@aws-sdk/client-sfn";
@@ -38,10 +39,8 @@ const lambdaHandler = async (event: StartTransactionLambdaPayload) => {
   const input: StartExecutionCommandInput = {
     stateMachineArn: isOffline ? config.stateMachineArnOffline : config.stateMachineArn,
     input: JSON.stringify({
-      body: {
-        transactionId,
-        ...event.body,
-      },
+      transactionId,
+      body: event.body,
     }),
   };
 
