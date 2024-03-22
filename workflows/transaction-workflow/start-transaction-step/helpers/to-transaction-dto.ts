@@ -1,7 +1,7 @@
-import { nanoid } from "nanoid";
-import { TransactionStatus } from "../../../shared/types/transaction.types";
+import { TransactionStatus } from "../../../../shared/types/transaction.types";
 
 export interface Data {
+  transactionId: string;
   currencyFrom: string;
   currencyFromAmount: number;
   currencyTo: string;
@@ -10,18 +10,22 @@ export interface Data {
 }
 
 export interface TransactionDto extends Data {
-  id: string;
   createdAt: string;
-  status: TransactionStatus;
+  transactionStatus: TransactionStatus;
+}
+
+export interface TransactionData extends TransactionDto {
+  pk: string;
+  sk: string;
+  transactionStatus: TransactionStatus;
 }
 
 export const toTransactionDto = (data: Data): TransactionDto => {
   const createdAt = new Date().toISOString();
 
   return {
-    id: nanoid(),
     createdAt,
+    transactionStatus: TransactionStatus.Started,
     ...data,
-    status: "started",
   };
 };

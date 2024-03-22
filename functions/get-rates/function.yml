@@ -5,7 +5,7 @@ get-rates:
     DYNAMODB_CURRENCY_TABLE: ${self:custom.environment.DYNAMODB_CURRENCY_TABLE}
     CURRENCY_AVAILABLE: ${env:CURRENCY_AVAILABLE}
     CURRENCY_SCOPE: ${env:CURRENCY_SCOPE}
-    BASE_CURRENCY: ${env:BASE_CURRENCY}
+    BASE_IMPORTER_CURRENCY: ${env:BASE_IMPORTER_CURRENCY}
   iamRoleStatements:
     - Effect: Allow
       Action:

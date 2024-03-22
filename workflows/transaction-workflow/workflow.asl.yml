@@ -1,0 +1,9 @@
+Comment: "Transaction Workflow"
+StartAt: startTransactionStep
+States:
+  startTransactionStep:
+    Type: Task
+    Resource: !GetAtt start-transaction-step-lambda.Arn
+    TimeoutSeconds: 600
+    End: true
+  # PLOP_ADD_WORKFLOW_STEP

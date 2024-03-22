@@ -1,1 +1,5 @@
-export type TransactionStatus = "started";
+export enum TransactionStatus {
+  Pending = "pending",
+  Started = "started",
+  Expired = "expired",
+}

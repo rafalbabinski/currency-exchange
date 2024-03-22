@@ -5,7 +5,6 @@ import { validateCurrencyList } from "./validate-currency-list";
 
 export const currencySchema = z
   .object({
-    appName: z.string().min(1),
     dynamoDBCurrencyTable: z.string().min(1),
     currencyAvailable: z.string().refine((currencyAvailable) => validateCurrencyList(currencyAvailable), {
       message:
@@ -14,12 +13,12 @@ export const currencySchema = z
     currencyScope: z.string().refine((currencyScope) => validateCurrencyList(currencyScope), {
       message: "currencyScope must be a comma-separated list of valid 3-letter currency codes (e.g., PLN, EUR, USD)",
     }),
-    currencyFrom: z.string().refine(
-      (currencyFrom) => {
-        return new RegExp(regExp.currencyCode).test(currencyFrom);
+    baseImporterCurrency: z.string().refine(
+      (baseImporterCurrency) => {
+        return new RegExp(regExp.currencyCode).test(baseImporterCurrency);
       },
       {
-        message: "currencyFrom must be valid 3-letter currency code (e.g., PLN, EUR, USD)",
+        message: "baseImporterCurrency must be valid 3-letter currency code (e.g., PLN, EUR, USD)",
       },
     ),
   })
@@ -38,9 +37,9 @@ export const currencySchema = z
     (data) => {
       const currencyScope = data.currencyScope.split(",");
 
-      return currencyScope.includes(data.currencyFrom);
+      return currencyScope.includes(data.baseImporterCurrency);
     },
     {
-      message: "currencyFrom must be value from currencyScope",
+      message: "baseImporterCurrency must be value from currencyScope",
     },
   );

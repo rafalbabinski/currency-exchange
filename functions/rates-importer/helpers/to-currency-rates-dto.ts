@@ -4,28 +4,30 @@ export interface Rates {
   [currencyCode: string]: string | number;
 }
 
-export interface CurrencyRatesData extends Rates {
+export interface CurrencyRatesDto extends Rates {
+  baseImporterCurrency: string;
+  createdAt: string;
+}
+
+export interface CurrencyRatesData extends CurrencyRatesDto {
   pk: string;
   sk: string;
 }
 
-export interface CurrencyRatesDto extends Rates {
-  currencyFrom: string;
-  createdAt: string;
-}
-
-export const toCurrencyRatesDto = (response: RatesResponse): CurrencyRatesDto => {
-  const currencyFrom = response.currency;
+export const toCurrencyRatesDto = (response: RatesResponse, currencyScope: string): CurrencyRatesDto => {
+  const baseImporterCurrency = response.currency;
   const createdAt = new Date().toISOString();
+
+  const filteredResponseRates = response.rates.filter((rate) => currencyScope.includes(rate.currency));
 
   const rates: Rates = {};
 
-  response.rates.forEach((rate) => {
+  filteredResponseRates.forEach((rate) => {
     rates[rate.currency] = rate.rate;
   });
 
   return {
-    currencyFrom,
+    baseImporterCurrency,
     createdAt,
     ...rates,
   };

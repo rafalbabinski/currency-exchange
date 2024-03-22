@@ -2,50 +2,58 @@ import middy from "@middy/core";
 import httpEventNormalizer from "@middy/http-event-normalizer";
 import httpHeaderNormalizer from "@middy/http-header-normalizer";
 import jsonBodyParser from "@middy/http-json-body-parser";
+import { nanoid } from "nanoid";
 import { StatusCodes } from "http-status-codes";
+import { StartExecutionCommand, StartExecutionCommandInput } from "@aws-sdk/client-sfn";
 import { awsLambdaResponse } from "../../shared/aws";
-import { createConfig } from "./config";
 import { inputOutputLoggerConfigured } from "../../shared/middleware/input-output-logger-configured";
-import { StartTransactionLambdaPayload, startTransactionLambdaSchema } from "./event.schema";
 import { zodValidator } from "../../shared/middleware/zod-validator";
 import { httpCorsConfigured } from "../../shared/middleware/http-cors-configured";
 import { httpErrorHandlerConfigured } from "../../shared/middleware/http-error-handler-configured";
-import { DynamoDbTransactionClient } from "./dynamodb/dynamodb-client";
-import { toTransactionDto } from "./helpers/to-transaction-dto";
-import { calculateExchangeRate } from "../get-rates/helpers/calculate-exchange-rates";
+import { errorLambdaResponse } from "../../shared/middleware/error-lambda-response";
+import { createStepFunctionsClient } from "../../shared/step-functions/step-functions-client-factory";
+import { TransactionStatus } from "../../shared/types/transaction.types";
+import { AppError } from "../../shared/errors/app.error";
+import { StartTransactionLambdaPayload, startTransactionLambdaSchema } from "./event.schema";
+import { createConfig } from "./config";
 import { DynamoDbCurrencyClient } from "../get-rates/dynamodb/dynamodb-client";
 
 const isOffline = process.env.IS_OFFLINE === "true";
 
 const config = createConfig(process.env);
 
-const dynamoDbTransactionClient = new DynamoDbTransactionClient(config.dynamoDBCurrencyTable, isOffline);
-
-const dynamoDbCurrencyClient = new DynamoDbCurrencyClient(config.dynamoDBCurrencyTable, isOffline);
+const dynamoDbCurrencyClient = new DynamoDbCurrencyClient(config.dynamoDBCurrencyTable);
 
 const lambdaHandler = async (event: StartTransactionLambdaPayload) => {
-  const { currencyFrom, currencyFromAmount, currencyTo } = event.body;
+  const response = await dynamoDbCurrencyClient.getCurrencyRates(config.baseImporterCurrency);
 
-  const currencyRates = await dynamoDbCurrencyClient.getCurrencyRates(currencyFrom);
+  if (!response) {
+    throw new AppError("No currency rates available");
+  }
 
-  const exchangeRates = calculateExchangeRate({
-    currencyFrom,
-    currencyRates,
-  });
+  const client = createStepFunctionsClient();
 
-  const exchangeRate = exchangeRates[currencyTo];
+  const transactionId = nanoid();
 
-  const currencyToAmount = Number((exchangeRate * currencyFromAmount).toFixed(2));
+  const input: StartExecutionCommandInput = {
+    stateMachineArn: isOffline ? config.stateMachineArnOffline : config.stateMachineArn,
+    input: JSON.stringify({
+      body: {
+        transactionId,
+        ...event.body,
+      },
+    }),
+  };
 
-  const transaction = { ...event.body, currencyToAmount, exchangeRate };
+  const command = new StartExecutionCommand(input);
 
-  const mappedTransaction = toTransactionDto(transaction);
-
-  await dynamoDbTransactionClient.initTransaction(mappedTransaction);
+  await client.send(command);
 
   return awsLambdaResponse(StatusCodes.OK, {
     success: true,
-    data: mappedTransaction,
+    transactionId,
+    status: TransactionStatus.Pending,
+    ...event.body,
   });
 };
 
@@ -55,6 +63,7 @@ export const handle = middy()
   .use(httpEventNormalizer())
   .use(httpHeaderNormalizer())
   .use(httpCorsConfigured)
-  .use(zodValidator(startTransactionLambdaSchema))
+  .use(zodValidator(startTransactionLambdaSchema(config)))
   .use(httpErrorHandlerConfigured)
+  .use(errorLambdaResponse)
   .handler(lambdaHandler);

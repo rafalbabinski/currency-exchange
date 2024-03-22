@@ -19,6 +19,8 @@ export const calculateExchangeRate: CalculateExchangeRateFn = ({ currencyFrom, c
   const ratesToBeCalculated: Partial<CurrencyRatesData> = currencyRates;
   delete ratesToBeCalculated.pk;
   delete ratesToBeCalculated.sk;
+  delete ratesToBeCalculated.baseImporterCurrency;
+  delete ratesToBeCalculated.createdAt;
 
   const newRates = Object.fromEntries(
     Object.entries(ratesToBeCalculated).map(([currency, defaultRate]) => {

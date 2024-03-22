@@ -1,7 +1,9 @@
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { DynamoDBDocumentClient } from "@aws-sdk/lib-dynamodb";
 
-export const createDynamoDBClient = (isOffline: boolean): DynamoDBDocumentClient => {
+const isOffline = process.env.IS_OFFLINE === "true";
+
+export const createDynamoDBClient = (): DynamoDBDocumentClient => {
   const client = new DynamoDBClient(
     isOffline
       ? {
