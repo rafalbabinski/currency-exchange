@@ -1,6 +1,9 @@
+import { SaveUserDataLambdaPayload } from "../../../../functions/save-user-data/event.schema";
 import { TransactionStatus } from "../../../../shared/types/transaction.types";
 
-export interface Data {
+export type UserData = SaveUserDataLambdaPayload["body"];
+
+export interface Data extends Partial<UserData> {
   transactionId: string;
   taskToken: string;
   currencyFrom: string;

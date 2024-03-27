@@ -25,14 +25,14 @@ const config = createConfig(process.env);
 
 const dynamoDbCurrencyClient = new DynamoDbCurrencyClient(config.dynamoDBCurrencyTable);
 
+const stepFunctionsClient = createStepFunctionsClient();
+
 const lambdaHandler = async (event: StartTransactionLambdaPayload) => {
   const response = await dynamoDbCurrencyClient.getCurrencyRates(config.baseImporterCurrency);
 
   if (!response) {
     throw new AppError("No currency rates available");
   }
-
-  const client = createStepFunctionsClient();
 
   const transactionId = nanoid();
 
@@ -46,7 +46,7 @@ const lambdaHandler = async (event: StartTransactionLambdaPayload) => {
 
   const command = new StartExecutionCommand(input);
 
-  await client.send(command);
+  await stepFunctionsClient.send(command);
 
   return awsLambdaResponse(StatusCodes.OK, {
     success: true,
