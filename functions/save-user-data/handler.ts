@@ -22,6 +22,8 @@ const config = createConfig(process.env);
 
 const dynamoDbClient = new DynamoDbTransactionClient(config.dynamoDBCurrencyTable);
 
+const stepFunctionsClient = createStepFunctionsClient();
+
 const lambdaHandler = async (event: SaveUserDataLambdaPayload) => {
   const { id } = event.pathParameters;
 
@@ -39,8 +41,6 @@ const lambdaHandler = async (event: SaveUserDataLambdaPayload) => {
     });
   }
 
-  const client = createStepFunctionsClient();
-
   const input: SendTaskSuccessInput = {
     taskToken: transaction.taskToken,
     output: JSON.stringify({
@@ -51,7 +51,7 @@ const lambdaHandler = async (event: SaveUserDataLambdaPayload) => {
 
   const command = new SendTaskSuccessCommand(input);
 
-  await client.send(command);
+  await stepFunctionsClient.send(command);
 
   return awsLambdaResponse(StatusCodes.OK, {
     success: true,

@@ -27,6 +27,8 @@ const paymentApiClient = createPaymentApiClient();
 
 const dynamoDbClient = new DynamoDbTransactionClient(config.dynamoDBCurrencyTable);
 
+const stepFunctionsClient = createStepFunctionsClient();
+
 const lambdaHandler = async (event: CompleteTransactionLambdaPayload) => {
   const { id } = event.pathParameters;
   const { cardNumber, cardholderName, ccv, expirationMonth, expirationYear } = event.body;
@@ -61,8 +63,6 @@ const lambdaHandler = async (event: CompleteTransactionLambdaPayload) => {
     statusUrl: `${statusBaseUrl}/transaction/${id}/payment-notification?key=${securityPaymentKey}`,
   });
 
-  const client = createStepFunctionsClient();
-
   const input: SendTaskSuccessInput = {
     taskToken: transaction.taskToken,
     output: JSON.stringify({
@@ -73,7 +73,7 @@ const lambdaHandler = async (event: CompleteTransactionLambdaPayload) => {
 
   const command = new SendTaskSuccessCommand(input);
 
-  client.send(command);
+  stepFunctionsClient.send(command);
 
   return awsLambdaResponse(StatusCodes.OK, {
     success: true,

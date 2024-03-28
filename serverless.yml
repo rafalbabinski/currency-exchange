@@ -7,6 +7,7 @@ plugins:
   - serverless-webpack
   - serverless-dynamodb
   - serverless-offline
+  - serverless-offline-ses-v2
 
 package:
   individually: true
@@ -50,6 +51,8 @@ custom:
         value: ${env:API_KEY}
     dev:
       - name: ${env:APP_NAME, 'tshExampleApp'}-dev-key
+  serverless-offline-ses-v2:
+    port: 8006
 
 provider:
   name: aws
