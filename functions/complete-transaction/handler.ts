@@ -40,7 +40,7 @@ const lambdaHandler = async (event: CompleteTransactionLambdaPayload) => {
   }
 
   if (transaction.transactionStatus !== TransactionStatus.WaitingForPayment) {
-    return awsLambdaResponse(StatusCodes.BAD_REQUEST, {
+    return awsLambdaResponse(StatusCodes.CONFLICT, {
       error: "Transaction status is not correct",
     });
   }

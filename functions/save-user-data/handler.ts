@@ -34,7 +34,7 @@ const lambdaHandler = async (event: SaveUserDataLambdaPayload) => {
   }
 
   if (transaction.transactionStatus !== TransactionStatus.Started) {
-    return awsLambdaResponse(StatusCodes.BAD_REQUEST, {
+    return awsLambdaResponse(StatusCodes.CONFLICT, {
       error: "Transaction status is not correct",
     });
   }
