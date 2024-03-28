@@ -3,7 +3,6 @@ import { DynamoDBDocumentClient, QueryCommand, UpdateCommand } from "@aws-sdk/li
 import { createDynamoDBClient } from "../../../../shared/dynamodb/dynamodb-client-factory";
 import { TransactionData } from "../../start-transaction-step/helpers/to-transaction-dto";
 import { TransactionStatus } from "../../../../shared/types/transaction.types";
-import { SaveUserDataLambdaPayload } from "../../../../functions/save-user-data/event.schema";
 
 export class DynamoDbTransactionClient {
   private client: DynamoDBDocumentClient;
@@ -36,45 +35,13 @@ export class DynamoDbTransactionClient {
     createdAt,
     updatedAt,
     transactionStatus,
+    securityPaymentKey,
   }: {
     id: string;
     createdAt: string;
     updatedAt: string;
     transactionStatus: TransactionStatus;
-  }): Promise<void> {
-    const updateItemCommand = new UpdateCommand({
-      Key: {
-        pk: `transaction#${id}`,
-        sk: `createdAt#${createdAt}`,
-      },
-      UpdateExpression: "set transactionStatus = :transactionStatus, updatedAt = :updatedAt",
-      ExpressionAttributeValues: {
-        ":transactionStatus": transactionStatus,
-        ":updatedAt": updatedAt,
-      },
-      TableName: this.tableName,
-    });
-
-    await this.client.send(updateItemCommand);
-  }
-
-  async updateTransactionUserData({
-    id,
-    createdAt,
-    updatedAt,
-    firstName,
-    lastName,
-    city,
-    zipCode,
-    email,
-    transactionStatus,
-    taskToken,
-  }: SaveUserDataLambdaPayload["body"] & {
-    id: string;
-    createdAt: string;
-    updatedAt: string;
-    transactionStatus: TransactionStatus;
-    taskToken: string;
+    securityPaymentKey: string;
   }): Promise<void> {
     const updateItemCommand = new UpdateCommand({
       Key: {
@@ -82,16 +49,11 @@ export class DynamoDbTransactionClient {
         sk: `createdAt#${createdAt}`,
       },
       UpdateExpression:
-        "set firstName = :firstName, lastName = :lastName, city = :city, zipCode = :zipCode, email = :email, transactionStatus = :transactionStatus, updatedAt = :updatedAt, taskToken = :taskToken",
+        "set transactionStatus = :transactionStatus, updatedAt = :updatedAt, securityPaymentKey = :securityPaymentKey",
       ExpressionAttributeValues: {
-        ":firstName": firstName,
-        ":lastName": lastName,
-        ":city": city,
-        ":zipCode": zipCode,
-        ":email": email,
         ":transactionStatus": transactionStatus,
         ":updatedAt": updatedAt,
-        ":taskToken": taskToken,
+        ":securityPaymentKey": securityPaymentKey,
       },
       TableName: this.tableName,
     });

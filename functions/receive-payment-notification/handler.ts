@@ -9,20 +9,21 @@ import { inputOutputLoggerConfigured } from "../../shared/middleware/input-outpu
 import { zodValidator } from "../../shared/middleware/zod-validator";
 import { queryParser } from "../../shared/middleware/query-parser";
 import { httpCorsConfigured } from "../../shared/middleware/http-cors-configured";
-import { DynamoDbTransactionClient } from "./dynamodb/dynamodb-client";
 import { httpErrorHandlerConfigured } from "../../shared/middleware/http-error-handler-configured";
-import { errorLambdaResponse } from "../../shared/middleware/error-lambda-response";
+import { DynamoDbTransactionClient } from "../check-transaction-status/dynamodb/dynamodb-client";
 import { TransactionStatus } from "../../shared/types/transaction.types";
-import { checkTransactionExpired } from "../../shared/utils/check-transaction-expired";
+import { ReceivePaymentNotificationLambdaPayload, receivePaymentNotificationLambdaSchema } from "./event.schema";
 import { createConfig } from "./config";
-import { CheckTransactionStatusLambdaPayload, checkTransactionStatusLambdaSchema } from "./event.schema";
+import { PaymentStatus } from "./types";
 
 const config = createConfig(process.env);
 
 const dynamoDbClient = new DynamoDbTransactionClient(config.dynamoDBCurrencyTable);
 
-const lambdaHandler = async (event: CheckTransactionStatusLambdaPayload) => {
+const lambdaHandler = async (event: ReceivePaymentNotificationLambdaPayload) => {
   const { id } = event.pathParameters;
+  const { key } = event.queryStringParameters;
+  const { status } = event.body;
 
   const response = await dynamoDbClient.getTransaction(id);
 
@@ -32,46 +33,46 @@ const lambdaHandler = async (event: CheckTransactionStatusLambdaPayload) => {
     });
   }
 
-  const { createdAt, transactionStatus } = response;
+  const { createdAt, transactionStatus, securityPaymentKey } = response;
 
-  const transactionDetails = {
-    ...response,
-    pk: undefined,
-    sk: undefined,
-    taskToken: undefined,
-    securityPaymentKey: undefined,
-  };
-
-  if (transactionStatus !== "started") {
-    return awsLambdaResponse(StatusCodes.OK, {
-      success: true,
-      transactionStatus,
-      transactionDetails,
+  if (transactionStatus !== TransactionStatus.WaitingForPaymentStatus) {
+    return awsLambdaResponse(StatusCodes.CONFLICT, {
+      error: "Transaction status is not correct",
     });
   }
 
-  const hasTransactionExpired = checkTransactionExpired({
-    createdAt,
-    timeToCompleteTransaction: Number(config.timeToCompleteTransaction),
-  });
+  if (key !== securityPaymentKey) {
+    return awsLambdaResponse(StatusCodes.FORBIDDEN, {
+      error: "Transaction key is not correct",
+    });
+  }
 
-  if (hasTransactionExpired) {
-    const newTransactionStatus = TransactionStatus.Expired;
-    const updatedAt = new Date().toISOString();
+  const updatedAt = new Date().toISOString();
 
-    await dynamoDbClient.updateTransactionStatus({ id, createdAt, updatedAt, transactionStatus });
+  if (status === PaymentStatus.Success) {
+    const newTransactionStatus = TransactionStatus.PaymentSuccess;
+
+    await dynamoDbClient.updateTransactionStatus({ id, createdAt, updatedAt, transactionStatus: newTransactionStatus });
 
     return awsLambdaResponse(StatusCodes.OK, {
       success: true,
       transactionStatus: newTransactionStatus,
-      transactionDetails,
+    });
+  }
+
+  if (status === PaymentStatus.Failure) {
+    const newTransactionStatus = TransactionStatus.PaymentFailure;
+
+    await dynamoDbClient.updateTransactionStatus({ id, createdAt, updatedAt, transactionStatus: newTransactionStatus });
+
+    return awsLambdaResponse(StatusCodes.OK, {
+      success: true,
+      transactionStatus: newTransactionStatus,
     });
   }
 
   return awsLambdaResponse(StatusCodes.OK, {
-    success: true,
-    transactionStatus,
-    transactionDetails,
+    success: false,
   });
 };
 
@@ -82,7 +83,6 @@ export const handle = middy()
   .use(httpHeaderNormalizer())
   .use(httpCorsConfigured)
   .use(queryParser())
-  .use(zodValidator(checkTransactionStatusLambdaSchema))
+  .use(zodValidator(receivePaymentNotificationLambdaSchema))
   .use(httpErrorHandlerConfigured)
-  .use(errorLambdaResponse)
   .handler(lambdaHandler);

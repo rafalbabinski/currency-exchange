@@ -6,14 +6,6 @@ get-rates:
     CURRENCY_AVAILABLE: ${env:CURRENCY_AVAILABLE}
     CURRENCY_SCOPE: ${env:CURRENCY_SCOPE}
     BASE_IMPORTER_CURRENCY: ${env:BASE_IMPORTER_CURRENCY}
-  iamRoleStatements:
-    - Effect: Allow
-      Action:
-        - dynamodb:GetItem
-      Resource:
-        Fn::GetAtt:
-          - currencyTable
-          - Arn
   events:
     - http:
         path: /exchange-rates

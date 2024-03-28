@@ -10,14 +10,6 @@ rates-importer:
     CURRENCY_API_HEADER: ${env:CURRENCY_API_HEADER}
     CURRENCY_API_TOKEN: ${env:CURRENCY_API_TOKEN}
     RATES_IMPORTER_LAMBDA_RATE: ${env:RATES_IMPORTER_LAMBDA_RATE}
-  iamRoleStatements:
-    - Effect: Allow
-      Action:
-        - dynamodb:PutItem
-      Resource:
-        Fn::GetAtt:
-          - currencyTable
-          - Arn
   events:
     - http:
         path: /rates-importer
