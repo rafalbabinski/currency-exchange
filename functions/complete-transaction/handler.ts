@@ -3,6 +3,8 @@ import httpEventNormalizer from "@middy/http-event-normalizer";
 import httpHeaderNormalizer from "@middy/http-header-normalizer";
 import jsonBodyParser from "@middy/http-json-body-parser";
 import { StatusCodes } from "http-status-codes";
+import { nanoid } from "nanoid";
+import { isAxiosError } from "axios";
 
 import { awsLambdaResponse } from "../../shared/aws";
 import { inputOutputLoggerConfigured } from "../../shared/middleware/input-output-logger-configured";
@@ -18,8 +20,6 @@ import { SendTaskSuccessCommand, SendTaskSuccessInput } from "@aws-sdk/client-sf
 import { TransactionStatus } from "../../shared/types/transaction.types";
 import { createConfig } from "./config";
 import { createPaymentApiClient } from "./api/payment";
-import { nanoid } from "nanoid";
-import { AxiosError, isAxiosError } from "axios";
 
 const isOffline = process.env.IS_OFFLINE === "true";
 
