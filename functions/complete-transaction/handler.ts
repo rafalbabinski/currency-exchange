@@ -19,7 +19,7 @@ import { TransactionStatus } from "../../shared/types/transaction.types";
 import { createConfig } from "./config";
 import { createPaymentApiClient } from "./api/payment";
 import { nanoid } from "nanoid";
-import { AxiosError } from "axios";
+import { AxiosError, isAxiosError } from "axios";
 
 const isOffline = process.env.IS_OFFLINE === "true";
 
@@ -66,9 +66,11 @@ const lambdaHandler = async (event: CompleteTransactionLambdaPayload) => {
       statusUrl: `${statusBaseUrl}/transaction/${id}/payment-notification?key=${securityPaymentKey}`,
     });
   } catch (error) {
-    return awsLambdaResponse(StatusCodes.BAD_REQUEST, {
-      error: (error as AxiosError).response?.data,
-    });
+    if (isAxiosError(error)) {
+      return awsLambdaResponse(StatusCodes.BAD_REQUEST, {
+        error: error.response?.data,
+      });
+    }
   }
 
   const input: SendTaskSuccessInput = {
