@@ -11,6 +11,14 @@ const config = createConfig({
   API_GATEWAY_URL: 'http://localhost:1337/local'
 });
 
+const wait = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
+before(() => {
+ return server.get("local/rates-importer")
+  .set('x-api-key', config.apiKey)
+  .expect(200);
+});
+
 describe("complete-transaction endpoint", () => {
   it("POST `local/transaction/id/payment` without id returns 404", () => {
     return server.post("local/transaction/payment")
@@ -90,9 +98,10 @@ describe("complete-transaction endpoint", () => {
         currencyFromAmount: 100,
       })
       .expect(200)
+
+    await wait(1000)
     
     const transactionId = response.body.transactionId
-  
     
     await server.post(`local/transaction/${transactionId}/payment`)
       .set('x-api-key', config.apiKey)
@@ -120,9 +129,20 @@ describe("complete-transaction endpoint", () => {
         currencyFromAmount: 100,
       })
       .expect(200)
-    
+   
+    await wait(1000)
+      
     const transactionId = response.body.transactionId
 
+    await server.get(`local/transaction/${transactionId}/status`)
+    .set('x-api-key', config.apiKey)
+    .expect(200)
+    .then(response => {
+      expect(response.body.transactionStatus).to.eql(TransactionStatus.Started);
+    });
+
+    await wait(1000)
+    
     await server.post(`local/transaction/${transactionId}/save-user-data`)
       .set('x-api-key', config.apiKey)
       .send({
@@ -135,13 +155,16 @@ describe("complete-transaction endpoint", () => {
       })
       .expect(200)
     
+    await wait(1000)
+    
     await server.get(`local/transaction/${transactionId}/status`)
       .set('x-api-key', config.apiKey)
       .expect(200)
       .then(response => {
         expect(response.body.transactionStatus).to.eql(TransactionStatus.WaitingForPayment);
       });
-  
+    
+    await wait(1000)
     
     await server.post(`local/transaction/${transactionId}/payment`)
       .set('x-api-key', config.apiKey)
@@ -153,6 +176,8 @@ describe("complete-transaction endpoint", () => {
         ccv: "123"
       })
       .expect(200)
+    
+    await wait(1000)
     
     return server.get(`local/transaction/${transactionId}/status`)
       .set('x-api-key', config.apiKey)
