@@ -9,3 +9,7 @@ export type ProcessPaymentPayload = {
   transactionId: string;
   statusUrl: string;
 };
+
+export type ProcessPaymentResponse = {
+  data: string;
+};

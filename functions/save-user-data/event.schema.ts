@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { regExp } from "../../shared/utils/reg-exp";
 
 export const saveUserDataLambdaSchema = z.object({
   body: z.object({
@@ -30,7 +31,7 @@ export const saveUserDataLambdaSchema = z.object({
       .string({
         required_error: "zipCode is required",
       })
-      .refine((value) => /^(?:\d{2}-\d{3}|\d{5}|\d{2} \d{3})$/.test(value), {
+      .refine((value) => new RegExp(regExp.zipCode).test(value), {
         message: "zipCode must be in one of the following formats: XX-XXX, XXXXX, XX XXX",
       }),
     email: z
