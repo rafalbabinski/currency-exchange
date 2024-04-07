@@ -50,9 +50,9 @@ export const startTransactionLambdaSchema = (config: ReturnType<typeof createCon
         ),
       currencyFromAmount: z
         .number({
-          required_error: "amount is required",
+          required_error: "currencyFromAmount is required",
         })
-        .positive("amount must be grater than 0"),
+        .positive("currencyFromAmount must be grater than 0"),
     }),
   });
 

@@ -11,6 +11,7 @@ import { zodValidator } from "../../shared/middleware/zod-validator";
 import { queryParser } from "../../shared/middleware/query-parser";
 import { httpCorsConfigured } from "../../shared/middleware/http-cors-configured";
 import { httpErrorHandlerConfigured } from "../../shared/middleware/http-error-handler-configured";
+import { errorLambdaResponse } from "../../shared/middleware/error-lambda-response";
 import { DynamoDbTransactionClient } from "../check-transaction-status/dynamodb/dynamodb-client";
 import { TransactionStatus } from "../../shared/types/transaction.types";
 import { createSesClient } from "../../shared/ses/ses-client-factory";
@@ -112,4 +113,5 @@ export const handle = middy()
   .use(queryParser())
   .use(zodValidator(receivePaymentNotificationLambdaSchema))
   .use(httpErrorHandlerConfigured)
+  .use(errorLambdaResponse)
   .handler(lambdaHandler);

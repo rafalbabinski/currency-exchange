@@ -3,6 +3,8 @@ import httpEventNormalizer from "@middy/http-event-normalizer";
 import httpHeaderNormalizer from "@middy/http-header-normalizer";
 import jsonBodyParser from "@middy/http-json-body-parser";
 import { StatusCodes } from "http-status-codes";
+import { nanoid } from "nanoid";
+import { isAxiosError } from "axios";
 
 import { awsLambdaResponse } from "../../shared/aws";
 import { inputOutputLoggerConfigured } from "../../shared/middleware/input-output-logger-configured";
@@ -11,13 +13,13 @@ import { zodValidator } from "../../shared/middleware/zod-validator";
 import { queryParser } from "../../shared/middleware/query-parser";
 import { httpCorsConfigured } from "../../shared/middleware/http-cors-configured";
 import { httpErrorHandlerConfigured } from "../../shared/middleware/http-error-handler-configured";
+import { errorLambdaResponse } from "../../shared/middleware/error-lambda-response";
 import { createStepFunctionsClient } from "../../shared/step-functions/step-functions-client-factory";
 import { DynamoDbTransactionClient } from "../check-transaction-status/dynamodb/dynamodb-client";
 import { SendTaskSuccessCommand, SendTaskSuccessInput } from "@aws-sdk/client-sfn";
 import { TransactionStatus } from "../../shared/types/transaction.types";
 import { createConfig } from "./config";
 import { createPaymentApiClient } from "./api/payment";
-import { nanoid } from "nanoid";
 
 const isOffline = process.env.IS_OFFLINE === "true";
 
@@ -51,17 +53,25 @@ const lambdaHandler = async (event: CompleteTransactionLambdaPayload) => {
 
   const securityPaymentKey = nanoid(100);
 
-  await paymentApiClient.processPayment({
-    number: cardNumber,
-    owner: cardholderName,
-    ccv,
-    amount: transaction.currencyFromAmount,
-    currency: transaction.currencyFrom,
-    month: Number(expirationMonth),
-    year: Number(expirationYear),
-    transactionId: id,
-    statusUrl: `${statusBaseUrl}/transaction/${id}/payment-notification?key=${securityPaymentKey}`,
-  });
+  try {
+    await paymentApiClient.processPayment({
+      number: cardNumber,
+      owner: cardholderName,
+      ccv,
+      amount: transaction.currencyFromAmount,
+      currency: transaction.currencyFrom,
+      month: Number(expirationMonth),
+      year: Number(expirationYear),
+      transactionId: id,
+      statusUrl: `${statusBaseUrl}/transaction/${id}/payment-notification?key=${securityPaymentKey}`,
+    });
+  } catch (error) {
+    if (isAxiosError(error)) {
+      return awsLambdaResponse(StatusCodes.BAD_REQUEST, {
+        error: error.response?.data,
+      });
+    }
+  }
 
   const input: SendTaskSuccessInput = {
     taskToken: transaction.taskToken,
@@ -89,4 +99,5 @@ export const handle = middy()
   .use(queryParser())
   .use(zodValidator(completeTransactionLambdaSchema))
   .use(httpErrorHandlerConfigured)
+  .use(errorLambdaResponse)
   .handler(lambdaHandler);
