@@ -102,6 +102,16 @@ provider:
           Fn::GetAtt:
             - currencyTable
             - Arn
+      - Effect: Allow
+        Action:
+          - sqs:SendMessage
+          - sqs:ReceiveMessage
+          - sqs:DeleteMessage
+          - sqs:GetQueueUrl
+        Resource:
+          Fn::GetAtt:
+            - sqsQueue
+            - Arn
   apiGateway:
     apiKeys: ${self:custom.apiKeys.${opt:stage, 'local'}}
 
