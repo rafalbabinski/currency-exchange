@@ -8,5 +8,5 @@ sqs-handler:
     - sqs:
         arn:
           Fn::GetAtt:
-            - myqueue
+            - sqsQueue
             - Arn

@@ -2,38 +2,26 @@ import middy from "@middy/core";
 import httpEventNormalizer from "@middy/http-event-normalizer";
 import httpHeaderNormalizer from "@middy/http-header-normalizer";
 import jsonBodyParser from "@middy/http-json-body-parser";
-
 import { nanoid } from "nanoid";
 import { StatusCodes } from "http-status-codes";
-import { StartExecutionCommand, StartExecutionCommandInput } from "@aws-sdk/client-sfn";
+
 import { awsLambdaResponse } from "../../shared/aws";
 import { inputOutputLoggerConfigured } from "../../shared/middleware/input-output-logger-configured";
 import { zodValidator } from "../../shared/middleware/zod-validator";
 import { httpCorsConfigured } from "../../shared/middleware/http-cors-configured";
 import { httpErrorHandlerConfigured } from "../../shared/middleware/http-error-handler-configured";
 import { errorLambdaResponse } from "../../shared/middleware/error-lambda-response";
-import { createStepFunctionsClient } from "../../shared/step-functions/step-functions-client-factory";
 import { TransactionStatus } from "../../shared/types/transaction.types";
 import { AppError } from "../../shared/errors/app.error";
 import { DynamoDbCurrencyClient } from "../get-rates/dynamodb/dynamodb-client";
 import { StartTransactionLambdaPayload, startTransactionLambdaSchema } from "./event.schema";
 import { createConfig } from "./config";
 import { createSqsClient } from "../../shared/sqs/sqs-client-factory";
-import {
-  CreateQueueCommand,
-  GetQueueUrlCommand,
-  ListQueuesCommand,
-  ListQueuesCommandInput,
-  SendMessageCommand,
-} from "@aws-sdk/client-sqs";
-
-const isOffline = process.env.IS_OFFLINE === "true";
+import { GetQueueUrlCommand, SendMessageCommand } from "@aws-sdk/client-sqs";
 
 const config = createConfig(process.env);
 
 const dynamoDbCurrencyClient = new DynamoDbCurrencyClient(config.dynamoDBCurrencyTable);
-
-const stepFunctionsClient = createStepFunctionsClient();
 
 const sqsClient = createSqsClient();
 
@@ -46,25 +34,12 @@ const lambdaHandler = async (event: StartTransactionLambdaPayload) => {
 
   const transactionId = nanoid();
 
-  // const command = new CreateQueueCommand({
-  //   QueueName: "myqueue",
-  //   Attributes: {
-  //     DelaySeconds: "60",
-  //     MessageRetentionPeriod: "86400",
-  //   },
-  // });
+  const sqsGetQueueCommand = new GetQueueUrlCommand({ QueueName: config.queueName });
 
-  // await sqsClient.send(command);
+  const { QueueUrl } = await sqsClient.send(sqsGetQueueCommand);
 
-  const command1 = new GetQueueUrlCommand({ QueueName: "myqueue" });
-
-  const response2 = await sqsClient.send(command1);
-
-  console.log("-------------");
-  console.log(response2);
-
-  const command2 = new SendMessageCommand({
-    QueueUrl: "http://localhost:9324/000000000000/myqueue",
+  const sqsSendQueueMessageCommand = new SendMessageCommand({
+    QueueUrl,
     DelaySeconds: 10,
     MessageAttributes: {
       Input: {
@@ -78,19 +53,7 @@ const lambdaHandler = async (event: StartTransactionLambdaPayload) => {
     MessageBody: "Information about the transaction.",
   });
 
-  const response3 = await sqsClient.send(command2);
-
-  // const input: StartExecutionCommandInput = {
-  //   stateMachineArn: isOffline ? config.stateMachineArnOffline : config.stateMachineArn,
-  //   input: JSON.stringify({
-  //     transactionId,
-  //     body: event.body,
-  //   }),
-  // };
-
-  // const command = new StartExecutionCommand(input);
-
-  // await stepFunctionsClient.send(command);
+  await sqsClient.send(sqsSendQueueMessageCommand);
 
   return awsLambdaResponse(StatusCodes.OK, {
     success: true,
