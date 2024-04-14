@@ -14,6 +14,7 @@ import { httpErrorHandlerConfigured } from "../../shared/middleware/http-error-h
 import { errorLambdaResponse } from "../../shared/middleware/error-lambda-response";
 import { TransactionStatus } from "../../shared/types/transaction.types";
 import { checkTransactionExpired } from "../../shared/utils/check-transaction-expired";
+import { getTransactionDetails } from "../../shared/utils/get-transaction-details";
 import { createConfig } from "./config";
 import { CheckTransactionStatusLambdaPayload, checkTransactionStatusLambdaSchema } from "./event.schema";
 
@@ -34,13 +35,7 @@ const lambdaHandler = async (event: CheckTransactionStatusLambdaPayload) => {
 
   const { createdAt, transactionStatus } = response;
 
-  const transactionDetails = {
-    ...response,
-    pk: undefined,
-    sk: undefined,
-    taskToken: undefined,
-    securityPaymentKey: undefined,
-  };
+  const transactionDetails = getTransactionDetails(response);
 
   if (transactionStatus !== "started") {
     return awsLambdaResponse(StatusCodes.OK, {

@@ -15,13 +15,13 @@ export interface Data extends Partial<UserData> {
 
 export interface TransactionDto extends Data {
   createdAt: string;
+  updatedAt?: string;
   transactionStatus: TransactionStatus;
 }
 
 export interface TransactionData extends TransactionDto {
   pk: string;
   sk: string;
-  transactionStatus: TransactionStatus;
   securityPaymentKey?: string;
 }
 
