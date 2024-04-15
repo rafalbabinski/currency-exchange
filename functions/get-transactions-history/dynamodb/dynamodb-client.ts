@@ -11,7 +11,7 @@ export class DynamoDbTransactionClient {
     this.client = createDynamoDBClient();
   }
 
-  async getTransactions() {
+  async getTransactions(limit: number) {
     const scanCommand = new ScanCommand({
       FilterExpression: "#transactionStatus = :transactionStatus",
       ExpressionAttributeNames: {
@@ -20,7 +20,7 @@ export class DynamoDbTransactionClient {
       ExpressionAttributeValues: {
         ":transactionStatus": TransactionStatus.PaymentSuccess,
       },
-      Limit: 20,
+      Limit: limit,
       TableName: this.tableName,
     });
 
