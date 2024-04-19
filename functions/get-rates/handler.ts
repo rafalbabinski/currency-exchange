@@ -11,6 +11,8 @@ import { errorLambdaResponse } from "../../shared/middleware/error-lambda-respon
 import { queryParser } from "../../shared/middleware/query-parser";
 import { zodValidator } from "../../shared/middleware/zod-validator";
 import { AppError } from "../../shared/errors/app.error";
+import { i18next } from "../../shared/i18n/i18n-client-factory";
+import { i18n } from "../../shared/middleware/i18n";
 import { calculateExchangeRate } from "./helpers/calculate-exchange-rates";
 import { createConfig } from "./config";
 import { DynamoDbCurrencyClient } from "./dynamodb/dynamodb-client";
@@ -24,7 +26,7 @@ const lambdaHandler = async (event: GetRatesLambdaPayload) => {
   const response = await dynamoDbClient.getCurrencyRates(config.baseImporterCurrency);
 
   if (!response) {
-    throw new AppError("No currency rates available");
+    throw new AppError(i18next.t("ERROR.RATES.NOT_AVAILABLE"));
   }
 
   const exchangeRates = calculateExchangeRate({
@@ -44,7 +46,10 @@ export const handle = middy()
   .use(httpHeaderNormalizer())
   .use(httpCorsConfigured)
   .use(queryParser())
-  .use(zodValidator(getRatesLambdaSchema(config)))
+  .use(i18n)
+  .use({
+    before: (request) => zodValidator(getRatesLambdaSchema(config)).before(request),
+  })
   .use(httpErrorHandlerConfigured)
   .use(errorLambdaResponse)
   .handler(lambdaHandler);

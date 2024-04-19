@@ -15,6 +15,8 @@ import { errorLambdaResponse } from "../../shared/middleware/error-lambda-respon
 import { createStepFunctionsClient } from "../../shared/step-functions/step-functions-client-factory";
 import { TransactionStatus } from "../../shared/types/transaction.types";
 import { AppError } from "../../shared/errors/app.error";
+import { i18next } from "../../shared/i18n/i18n-client-factory";
+import { i18n } from "../../shared/middleware/i18n";
 import { StartTransactionLambdaPayload, startTransactionLambdaSchema } from "./event.schema";
 import { createConfig } from "./config";
 import { DynamoDbCurrencyClient } from "../get-rates/dynamodb/dynamodb-client";
@@ -31,7 +33,7 @@ const lambdaHandler = async (event: StartTransactionLambdaPayload) => {
   const response = await dynamoDbCurrencyClient.getCurrencyRates(config.baseImporterCurrency);
 
   if (!response) {
-    throw new AppError("No currency rates available");
+    throw new AppError(i18next.t("ERROR.RATES.NOT_AVAILABLE"));
   }
 
   const transactionId = nanoid();
@@ -62,7 +64,10 @@ export const handle = middy()
   .use(httpEventNormalizer())
   .use(httpHeaderNormalizer())
   .use(httpCorsConfigured)
-  .use(zodValidator(startTransactionLambdaSchema(config)))
+  .use(i18n)
+  .use({
+    before: (request) => zodValidator(startTransactionLambdaSchema(config)).before(request),
+  })
   .use(httpErrorHandlerConfigured)
   .use(errorLambdaResponse)
   .handler(lambdaHandler);

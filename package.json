@@ -49,6 +49,8 @@
     "card-validator": "^9.1.0",
     "dotenv": "^16.3.1",
     "http-status-codes": "^2.2.0",
+    "i18next": "^23.11.2",
+    "i18next-fs-backend": "^2.3.1",
     "luxon": "^3.4.4",
     "nanoid": "^5.0.4",
     "pg": "^8.11.2",

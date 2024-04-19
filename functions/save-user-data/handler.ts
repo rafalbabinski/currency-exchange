@@ -15,8 +15,10 @@ import { errorLambdaResponse } from "../../shared/middleware/error-lambda-respon
 import { createStepFunctionsClient } from "../../shared/step-functions/step-functions-client-factory";
 import { SendTaskSuccessCommand, SendTaskSuccessInput } from "@aws-sdk/client-sfn";
 import { DynamoDbTransactionClient } from "../check-transaction-status/dynamodb/dynamodb-client";
-import { createConfig } from "./config";
 import { TransactionStatus } from "../../shared/types/transaction.types";
+import { i18next } from "../../shared/i18n/i18n-client-factory";
+import { i18n } from "../../shared/middleware/i18n";
+import { createConfig } from "./config";
 
 const config = createConfig(process.env);
 
@@ -31,13 +33,13 @@ const lambdaHandler = async (event: SaveUserDataLambdaPayload) => {
 
   if (!transaction) {
     return awsLambdaResponse(StatusCodes.NOT_FOUND, {
-      error: "No transaction with given id",
+      error: i18next.t("ERROR.TRANSACTION.ID_NOT_MATCH"),
     });
   }
 
   if (transaction.transactionStatus !== TransactionStatus.Started) {
     return awsLambdaResponse(StatusCodes.CONFLICT, {
-      error: "Transaction status is not correct",
+      error: i18next.t("ERROR.TRANSACTION.STATUS_NOT_CORRECT"),
     });
   }
 
@@ -65,7 +67,10 @@ export const handle = middy()
   .use(httpHeaderNormalizer())
   .use(httpCorsConfigured)
   .use(queryParser())
-  .use(zodValidator(saveUserDataLambdaSchema))
+  .use(i18n)
+  .use({
+    before: (request) => zodValidator(saveUserDataLambdaSchema()).before(request),
+  })
   .use(httpErrorHandlerConfigured)
   .use(errorLambdaResponse)
   .handler(lambdaHandler);

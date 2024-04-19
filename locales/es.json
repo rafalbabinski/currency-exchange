@@ -1,0 +1,15 @@
+{
+  "ERROR.TRANSACTION.ID_NOT_MATCH": "No hay transacción con el id dado",
+  "ERROR.TRANSACTION.STATUS_NOT_CORRECT": "El estado de la transacción no es correcto",
+  "ERROR.TRANSACTION.KEY_NOT_CORRECT": "La clave de la transacción no es correcta",
+  "ERROR.RATES.NOT_AVAILABLE": "No hay tasas de cambio disponibles",
+  "VALIDATION.NOT_VALID": "{{field}} no es válido",
+  "VALIDATION.REQUIRED": "{{field}} es necesario", 
+  "VALIDATION.EMPTY": "{{field}} no puede estar vacío", 
+  "VALIDATION.CURRENCY_CODE.SYNTAX": "{{field}} debe ser un código de moneda válido de 3 letras (por ejemplo, PLN, EUR, USD)",
+  "VALIDATION.CURRENCY_CODE.SCOPE": "{{field}} no está en el alcance del intercambio, monedas disponibles: {{scope}}",
+  "VALIDATION.MAX_CHAR": "{{field}} puede tener un máximo de {{value}} caracteres",
+  "VALIDATION.ZIP_CODE": "zipCode debe estar en uno de los siguientes formatos: XX-XXX, XXXXX, XX XXX",
+  "VALIDATION.EMAIL": "email debe ser un correo electrónico válido",
+  "VALIDATION.POSITIVE": "{{field}} debe ser mayor que 0"
+}

@@ -1,12 +1,14 @@
 import { z } from "zod";
 
+import { i18next } from "../../shared/i18n/i18n-client-factory";
+
 export const checkTransactionStatusLambdaSchema = z.object({
   pathParameters: z.object({
     id: z
       .string({
-        required_error: "id is required",
+        required_error: i18next.t("VALIDATION.REQUIRED", { field: "id" }),
       })
-      .min(1, "id can't be empty"),
+      .min(1, i18next.t("VALIDATION.EMPTY", { field: "id" })),
   }),
 });
 

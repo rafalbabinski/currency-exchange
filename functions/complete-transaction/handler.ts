@@ -2,6 +2,7 @@ import middy from "@middy/core";
 import httpEventNormalizer from "@middy/http-event-normalizer";
 import httpHeaderNormalizer from "@middy/http-header-normalizer";
 import jsonBodyParser from "@middy/http-json-body-parser";
+import { SendTaskSuccessCommand, SendTaskSuccessInput } from "@aws-sdk/client-sfn";
 import { StatusCodes } from "http-status-codes";
 import { nanoid } from "nanoid";
 import { isAxiosError } from "axios";
@@ -16,8 +17,9 @@ import { httpErrorHandlerConfigured } from "../../shared/middleware/http-error-h
 import { errorLambdaResponse } from "../../shared/middleware/error-lambda-response";
 import { createStepFunctionsClient } from "../../shared/step-functions/step-functions-client-factory";
 import { DynamoDbTransactionClient } from "../check-transaction-status/dynamodb/dynamodb-client";
-import { SendTaskSuccessCommand, SendTaskSuccessInput } from "@aws-sdk/client-sfn";
 import { TransactionStatus } from "../../shared/types/transaction.types";
+import { i18next } from "../../shared/i18n/i18n-client-factory";
+import { i18n } from "../../shared/middleware/i18n";
 import { createConfig } from "./config";
 import { createPaymentApiClient } from "./api/payment";
 
@@ -39,13 +41,13 @@ const lambdaHandler = async (event: CompleteTransactionLambdaPayload) => {
 
   if (!transaction) {
     return awsLambdaResponse(StatusCodes.NOT_FOUND, {
-      error: "No transaction with given id",
+      error: i18next.t("ERROR.TRANSACTION.ID_NOT_MATCH"),
     });
   }
 
   if (transaction.transactionStatus !== TransactionStatus.WaitingForPayment) {
     return awsLambdaResponse(StatusCodes.CONFLICT, {
-      error: "Transaction status is not correct",
+      error: i18next.t("ERROR.TRANSACTION.STATUS_NOT_CORRECT"),
     });
   }
 
@@ -97,7 +99,10 @@ export const handle = middy()
   .use(httpHeaderNormalizer())
   .use(httpCorsConfigured)
   .use(queryParser())
-  .use(zodValidator(completeTransactionLambdaSchema))
+  .use(i18n)
+  .use({
+    before: (request) => zodValidator(completeTransactionLambdaSchema()).before(request),
+  })
   .use(httpErrorHandlerConfigured)
   .use(errorLambdaResponse)
   .handler(lambdaHandler);

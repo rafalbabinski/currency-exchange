@@ -16,6 +16,8 @@ import { DynamoDbTransactionClient } from "../check-transaction-status/dynamodb/
 import { TransactionStatus } from "../../shared/types/transaction.types";
 import { createSesClient } from "../../shared/ses/ses-client-factory";
 import { TransactionData } from "../../workflows/transaction-workflow/start-transaction-step/helpers/to-transaction-dto";
+import { i18next } from "../../shared/i18n/i18n-client-factory";
+import { i18n } from "../../shared/middleware/i18n";
 import { PaymentStatus } from "./types";
 import { ReceivePaymentNotificationLambdaPayload, receivePaymentNotificationLambdaSchema } from "./event.schema";
 import { createConfig } from "./config";
@@ -36,7 +38,7 @@ const lambdaHandler = async (event: ReceivePaymentNotificationLambdaPayload) => 
 
   if (!transaction) {
     return awsLambdaResponse(StatusCodes.NOT_FOUND, {
-      error: "No transaction with given id",
+      error: i18next.t("ERROR.TRANSACTION.ID_NOT_MATCH"),
     });
   }
 
@@ -44,13 +46,13 @@ const lambdaHandler = async (event: ReceivePaymentNotificationLambdaPayload) => 
 
   if (transactionStatus !== TransactionStatus.WaitingForPaymentStatus) {
     return awsLambdaResponse(StatusCodes.CONFLICT, {
-      error: "Transaction status is not correct",
+      error: i18next.t("ERROR.TRANSACTION.STATUS_NOT_CORRECT"),
     });
   }
 
   if (key !== securityPaymentKey) {
     return awsLambdaResponse(StatusCodes.FORBIDDEN, {
-      error: "Transaction key is not correct",
+      error: i18next.t("ERROR.TRANSACTION.KEY_NOT_CORRECT"),
     });
   }
 
@@ -111,7 +113,10 @@ export const handle = middy()
   .use(httpHeaderNormalizer())
   .use(httpCorsConfigured)
   .use(queryParser())
-  .use(zodValidator(receivePaymentNotificationLambdaSchema))
+  .use(i18n)
+  .use({
+    before: (request) => zodValidator(receivePaymentNotificationLambdaSchema()).before(request),
+  })
   .use(httpErrorHandlerConfigured)
   .use(errorLambdaResponse)
   .handler(lambdaHandler);
