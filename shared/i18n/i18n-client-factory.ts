@@ -10,4 +10,6 @@ export const i18nClient = () =>
     preload: ["en", "es"],
   });
 
+export const translate = i18next.t;
+
 export { i18next };

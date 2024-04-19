@@ -16,7 +16,7 @@ import { DynamoDbTransactionClient } from "../check-transaction-status/dynamodb/
 import { TransactionStatus } from "../../shared/types/transaction.types";
 import { createSesClient } from "../../shared/ses/ses-client-factory";
 import { TransactionData } from "../../workflows/transaction-workflow/start-transaction-step/helpers/to-transaction-dto";
-import { i18next } from "../../shared/i18n/i18n-client-factory";
+import { translate } from "../../shared/i18n/i18n-client-factory";
 import { i18n } from "../../shared/middleware/i18n";
 import { PaymentStatus } from "./types";
 import { ReceivePaymentNotificationLambdaPayload, receivePaymentNotificationLambdaSchema } from "./event.schema";
@@ -38,7 +38,7 @@ const lambdaHandler = async (event: ReceivePaymentNotificationLambdaPayload) => 
 
   if (!transaction) {
     return awsLambdaResponse(StatusCodes.NOT_FOUND, {
-      error: i18next.t("ERROR.TRANSACTION.ID_NOT_MATCH"),
+      error: translate("ERROR.TRANSACTION.ID_NOT_MATCH"),
     });
   }
 
@@ -46,13 +46,13 @@ const lambdaHandler = async (event: ReceivePaymentNotificationLambdaPayload) => 
 
   if (transactionStatus !== TransactionStatus.WaitingForPaymentStatus) {
     return awsLambdaResponse(StatusCodes.CONFLICT, {
-      error: i18next.t("ERROR.TRANSACTION.STATUS_NOT_CORRECT"),
+      error: translate("ERROR.TRANSACTION.STATUS_NOT_CORRECT"),
     });
   }
 
   if (key !== securityPaymentKey) {
     return awsLambdaResponse(StatusCodes.FORBIDDEN, {
-      error: i18next.t("ERROR.TRANSACTION.KEY_NOT_CORRECT"),
+      error: translate("ERROR.TRANSACTION.KEY_NOT_CORRECT"),
     });
   }
 

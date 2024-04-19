@@ -7,9 +7,9 @@ export const i18n: MiddlewareObj<APIGatewayProxyEvent, APIGatewayProxyResult> = 
   before: async ({ event }) => {
     const queryParams = event.queryStringParameters || {};
 
-    if (queryParams.lang) {
-      await i18nClient();
+    await i18nClient();
 
+    if (queryParams.lang) {
       await i18next.changeLanguage(queryParams.lang);
     }
   },

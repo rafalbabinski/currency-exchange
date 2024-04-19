@@ -16,7 +16,7 @@ import { createStepFunctionsClient } from "../../shared/step-functions/step-func
 import { SendTaskSuccessCommand, SendTaskSuccessInput } from "@aws-sdk/client-sfn";
 import { DynamoDbTransactionClient } from "../check-transaction-status/dynamodb/dynamodb-client";
 import { TransactionStatus } from "../../shared/types/transaction.types";
-import { i18next } from "../../shared/i18n/i18n-client-factory";
+import { translate } from "../../shared/i18n/i18n-client-factory";
 import { i18n } from "../../shared/middleware/i18n";
 import { createConfig } from "./config";
 
@@ -33,13 +33,13 @@ const lambdaHandler = async (event: SaveUserDataLambdaPayload) => {
 
   if (!transaction) {
     return awsLambdaResponse(StatusCodes.NOT_FOUND, {
-      error: i18next.t("ERROR.TRANSACTION.ID_NOT_MATCH"),
+      error: translate("ERROR.TRANSACTION.ID_NOT_MATCH"),
     });
   }
 
   if (transaction.transactionStatus !== TransactionStatus.Started) {
     return awsLambdaResponse(StatusCodes.CONFLICT, {
-      error: i18next.t("ERROR.TRANSACTION.STATUS_NOT_CORRECT"),
+      error: translate("ERROR.TRANSACTION.STATUS_NOT_CORRECT"),
     });
   }
 

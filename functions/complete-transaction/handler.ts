@@ -18,7 +18,7 @@ import { errorLambdaResponse } from "../../shared/middleware/error-lambda-respon
 import { createStepFunctionsClient } from "../../shared/step-functions/step-functions-client-factory";
 import { DynamoDbTransactionClient } from "../check-transaction-status/dynamodb/dynamodb-client";
 import { TransactionStatus } from "../../shared/types/transaction.types";
-import { i18next } from "../../shared/i18n/i18n-client-factory";
+import { translate } from "../../shared/i18n/i18n-client-factory";
 import { i18n } from "../../shared/middleware/i18n";
 import { createConfig } from "./config";
 import { createPaymentApiClient } from "./api/payment";
@@ -41,13 +41,13 @@ const lambdaHandler = async (event: CompleteTransactionLambdaPayload) => {
 
   if (!transaction) {
     return awsLambdaResponse(StatusCodes.NOT_FOUND, {
-      error: i18next.t("ERROR.TRANSACTION.ID_NOT_MATCH"),
+      error: translate("ERROR.TRANSACTION.ID_NOT_MATCH"),
     });
   }
 
   if (transaction.transactionStatus !== TransactionStatus.WaitingForPayment) {
     return awsLambdaResponse(StatusCodes.CONFLICT, {
-      error: i18next.t("ERROR.TRANSACTION.STATUS_NOT_CORRECT"),
+      error: translate("ERROR.TRANSACTION.STATUS_NOT_CORRECT"),
     });
   }
 
