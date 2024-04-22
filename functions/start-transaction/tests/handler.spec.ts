@@ -1,6 +1,6 @@
 import { expect } from "chai";
 
-import { server } from "../../../shared/tests";
+import { generatePath, server } from "../../../shared/tests";
 import { getResponseErrorMessages } from "../../../shared/utils/get-response-error-messages";
 import { TransactionStatus } from "../../../shared/types/transaction.types";
 import { createConfig } from "./../config";
@@ -8,29 +8,27 @@ import { createConfig } from "./../config";
 const config = createConfig(process.env);
 
 describe("start-transaction endpoint", () => {
-  it("POST `local/transaction/start` without payload returns 400", () => {
-    return server.post("local/transaction/start")
+  it("POST `transaction/start` without payload returns 400", () => {
+    return server.post(generatePath("transaction/start"))
       .set('x-api-key', config.apiKey)
       .expect(400);
   });
 
-  it("POST `local/transaction/start` with wrong payload returns 400 - empty object", () => {
-    return server.post("local/transaction/start")
+  it("POST `transaction/start` with wrong payload returns 400 - empty object", () => {
+    return server.post(generatePath("transaction/start"))
       .set('x-api-key', config.apiKey)
       .send({})
       .expect(400)
       .then(response => {
         const errorMessages = getResponseErrorMessages(response)
         
-        expect(errorMessages).to.include('currencyFrom is required');
-        expect(errorMessages).to.include('currencyTo is required');
-        expect(errorMessages).to.include('currencyFromAmount is required');
-
+        expect(errorMessages).to.include("VALIDATION.REQUIRED");
+        expect(errorMessages).to.have.length(3);
       });
   });
 
-  it("POST `local/transaction/start` with wrong payload returns 400 - wrong currencyFrom code", () => {
-    return server.post("local/transaction/start")
+  it("POST `transaction/start` with wrong payload returns 400 - wrong currencyFrom code", () => {
+    return server.post(generatePath("transaction/start"))
       .set('x-api-key', config.apiKey)
       .send({
         currencyFrom: "PLNX",
@@ -41,12 +39,12 @@ describe("start-transaction endpoint", () => {
       .then(response => {
         const errorMessages = getResponseErrorMessages(response)
         
-        expect(errorMessages).to.include('currencyFrom must be valid 3-letter currency code (e.g., PLN, EUR, USD)');
+        expect(errorMessages).to.include("VALIDATION.CURRENCY_CODE.SYNTAX");
       });
   });
 
-  it("POST `local/transaction/start` with wrong payload returns 400 - wrong currencyTo code", () => {
-    return server.post("local/transaction/start")
+  it("POST `transaction/start` with wrong payload returns 400 - wrong currencyTo code", () => {
+    return server.post(generatePath("transaction/start"))
       .set('x-api-key', config.apiKey)
       .send({
         currencyFrom: "PLN",
@@ -57,12 +55,12 @@ describe("start-transaction endpoint", () => {
       .then(response => {
         const errorMessages = getResponseErrorMessages(response)
         
-        expect(errorMessages).to.include('currencyTo must be valid 3-letter currency code (e.g., PLN, EUR, USD)');
+        expect(errorMessages).to.include("VALIDATION.CURRENCY_CODE.SYNTAX");
       });
   });
 
-  it("POST `local/transaction/start` with wrong payload returns 400 - currencyFrom not in scope", () => {
-    return server.post("local/transaction/start")
+  it("POST `transaction/start` with wrong payload returns 400 - currencyFrom not in scope", () => {
+    return server.post(generatePath("transaction/start"))
       .set('x-api-key', config.apiKey)
       .send({
         currencyFrom: "GBP",
@@ -73,12 +71,12 @@ describe("start-transaction endpoint", () => {
       .then(response => {
         const errorMessages = getResponseErrorMessages(response)
         
-        expect(errorMessages).to.include(`currencyFrom is not in the exchange scope, available currencies: ${config.currencyScope}`);
+        expect(errorMessages).to.include("VALIDATION.CURRENCY_CODE.SCOPE");
       });
   });
 
-  it("POST `local/transaction/start` with wrong payload returns 400 - currencyTo not in scope", () => {
-    return server.post("local/transaction/start")
+  it("POST `transaction/start` with wrong payload returns 400 - currencyTo not in scope", () => {
+    return server.post(generatePath("transaction/start"))
       .set('x-api-key', config.apiKey)
       .send({
         currencyFrom: "PLN",
@@ -89,12 +87,12 @@ describe("start-transaction endpoint", () => {
       .then(response => {
         const errorMessages = getResponseErrorMessages(response)
         
-        expect(errorMessages).to.include(`currencyTo is not in the exchange scope, available currencies: ${config.currencyScope}`);
+        expect(errorMessages).to.include("VALIDATION.CURRENCY_CODE.SCOPE");
       });
   });
 
-  it("POST `local/transaction/start` with correct payload returns 200", async () => {
-    const response = await server.post("local/transaction/start")
+  it("POST `transaction/start` with correct payload returns 200", async () => {
+    const response = await server.post(generatePath("transaction/start"))
       .set('x-api-key', config.apiKey)
       .send({
         currencyFrom: "EUR",
@@ -105,7 +103,7 @@ describe("start-transaction endpoint", () => {
     
     const transactionId = response.body.transactionId
 
-    return server.get(`local/transaction/${transactionId}/status`)
+    return server.get(generatePath(`transaction/${transactionId}/status`))
       .set('x-api-key', config.apiKey)
       .expect(200)
       .then(response => {
