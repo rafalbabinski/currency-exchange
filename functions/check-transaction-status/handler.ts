@@ -14,7 +14,7 @@ import { httpErrorHandlerConfigured } from "../../shared/middleware/http-error-h
 import { errorLambdaResponse } from "../../shared/middleware/error-lambda-response";
 import { TransactionStatus } from "../../shared/types/transaction.types";
 import { checkTransactionExpired } from "../../shared/utils/check-transaction-expired";
-import { i18next } from "../../shared/i18n/i18n-client-factory";
+import { translate } from "../../shared/i18n/i18n-client-factory";
 import { i18n } from "../../shared/middleware/i18n";
 import { createConfig } from "./config";
 import { CheckTransactionStatusLambdaPayload, checkTransactionStatusLambdaSchema } from "./event.schema";
@@ -30,7 +30,7 @@ const lambdaHandler = async (event: CheckTransactionStatusLambdaPayload) => {
 
   if (!response) {
     return awsLambdaResponse(StatusCodes.NOT_FOUND, {
-      error: i18next.t("ERROR.TRANSACTION.ID_NOT_MATCH"),
+      error: translate("ERROR.TRANSACTION.ID_NOT_MATCH"),
     });
   }
 
