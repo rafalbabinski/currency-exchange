@@ -128,6 +128,7 @@ functions:
   - ${file(functions/complete-transaction/function.yml)}
   - ${file(workflows/transaction-workflow/complete-transaction-step/function.yml)}
   - ${file(functions/receive-payment-notification/function.yml)}
+  - ${file(functions/get-transactions-history/function.yml)}
   - ${file(functions/sqs-handler/function.yml)}
   # PLOP_ADD_LAMBDA
 
