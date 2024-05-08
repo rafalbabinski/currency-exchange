@@ -2,32 +2,30 @@ import middy from "@middy/core";
 import httpEventNormalizer from "@middy/http-event-normalizer";
 import httpHeaderNormalizer from "@middy/http-header-normalizer";
 import jsonBodyParser from "@middy/http-json-body-parser";
-
 import { nanoid } from "nanoid";
 import { StatusCodes } from "http-status-codes";
-import { StartExecutionCommand, StartExecutionCommandInput } from "@aws-sdk/client-sfn";
+import { GetQueueUrlCommand, SendMessageCommand } from "@aws-sdk/client-sqs";
+
 import { awsLambdaResponse } from "../../shared/aws";
 import { inputOutputLoggerConfigured } from "../../shared/middleware/input-output-logger-configured";
 import { zodValidator } from "../../shared/middleware/zod-validator";
 import { httpCorsConfigured } from "../../shared/middleware/http-cors-configured";
 import { httpErrorHandlerConfigured } from "../../shared/middleware/http-error-handler-configured";
 import { errorLambdaResponse } from "../../shared/middleware/error-lambda-response";
-import { createStepFunctionsClient } from "../../shared/step-functions/step-functions-client-factory";
 import { TransactionStatus } from "../../shared/types/transaction.types";
 import { AppError } from "../../shared/errors/app.error";
 import { translate } from "../../shared/i18n/i18n-client-factory";
 import { i18n } from "../../shared/middleware/i18n";
+import { DynamoDbCurrencyClient } from "../get-rates/dynamodb/dynamodb-client";
 import { StartTransactionLambdaPayload, startTransactionLambdaSchema } from "./event.schema";
 import { createConfig } from "./config";
-import { DynamoDbCurrencyClient } from "../get-rates/dynamodb/dynamodb-client";
-
-const isOffline = process.env.IS_OFFLINE === "true";
+import { createSqsClient } from "../../shared/sqs/sqs-client-factory";
 
 const config = createConfig(process.env);
 
 const dynamoDbCurrencyClient = new DynamoDbCurrencyClient(config.dynamoDBCurrencyTable);
 
-const stepFunctionsClient = createStepFunctionsClient();
+const sqsClient = createSqsClient();
 
 const lambdaHandler = async (event: StartTransactionLambdaPayload) => {
   const response = await dynamoDbCurrencyClient.getCurrencyRates(config.baseImporterCurrency);
@@ -38,17 +36,26 @@ const lambdaHandler = async (event: StartTransactionLambdaPayload) => {
 
   const transactionId = nanoid();
 
-  const input: StartExecutionCommandInput = {
-    stateMachineArn: isOffline ? config.stateMachineArnOffline : config.stateMachineArn,
-    input: JSON.stringify({
-      transactionId,
-      body: event.body,
-    }),
-  };
+  const sqsGetQueueCommand = new GetQueueUrlCommand({ QueueName: config.queueName });
 
-  const command = new StartExecutionCommand(input);
+  const { QueueUrl } = await sqsClient.send(sqsGetQueueCommand);
 
-  await stepFunctionsClient.send(command);
+  const sqsSendQueueMessageCommand = new SendMessageCommand({
+    QueueUrl,
+    DelaySeconds: 10,
+    MessageAttributes: {
+      Input: {
+        DataType: "String",
+        StringValue: JSON.stringify({
+          transactionId,
+          body: event.body,
+        }),
+      },
+    },
+    MessageBody: "Information about the transaction.",
+  });
+
+  await sqsClient.send(sqsSendQueueMessageCommand);
 
   return awsLambdaResponse(StatusCodes.OK, {
     success: true,

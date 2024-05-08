@@ -1,0 +1,11 @@
+get-transactions-history:
+  handler: functions/get-transactions-history/handler.handle
+  vpc: ${self:custom.vpc}
+  environment:
+    DYNAMODB_CURRENCY_TABLE: ${self:custom.environment.DYNAMODB_CURRENCY_TABLE}
+  events:
+    - http:
+        path: /transactions-history
+        method: GET
+        private: true
+        cors: true

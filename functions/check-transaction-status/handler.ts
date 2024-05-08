@@ -16,6 +16,7 @@ import { TransactionStatus } from "../../shared/types/transaction.types";
 import { checkTransactionExpired } from "../../shared/utils/check-transaction-expired";
 import { translate } from "../../shared/i18n/i18n-client-factory";
 import { i18n } from "../../shared/middleware/i18n";
+import { getTransactionDetails } from "../../shared/utils/get-transaction-details";
 import { createConfig } from "./config";
 import { CheckTransactionStatusLambdaPayload, checkTransactionStatusLambdaSchema } from "./event.schema";
 
@@ -36,13 +37,7 @@ const lambdaHandler = async (event: CheckTransactionStatusLambdaPayload) => {
 
   const { createdAt, transactionStatus } = response;
 
-  const transactionDetails = {
-    ...response,
-    pk: undefined,
-    sk: undefined,
-    taskToken: undefined,
-    securityPaymentKey: undefined,
-  };
+  const transactionDetails = getTransactionDetails(response);
 
   if (transactionStatus !== "started") {
     return awsLambdaResponse(StatusCodes.OK, {
