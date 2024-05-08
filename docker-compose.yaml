@@ -8,5 +8,17 @@ services:
       LAMBDA_ENDPOINT: http://host.docker.internal:4000
     ports:
       - "8083:8083"
+  elasticmq:
+    image: softwaremill/elasticmq-native
+    container_name: 'sls-elasticmq'
+    ports:
+        - 9324:9324
+        - 9325:9325
+    volumes:
+        - ./elasticmq.conf:/opt/elasticmq.conf
+    networks:
+        - queuenetwork
 networks:
   app:
+  queuenetwork:
+    driver: bridge

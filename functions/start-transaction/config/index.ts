@@ -9,8 +9,7 @@ const loadEnvs = (env: any) => ({
   currencyAvailable: env.CURRENCY_AVAILABLE,
   currencyScope: env.CURRENCY_SCOPE,
   baseImporterCurrency: env.BASE_IMPORTER_CURRENCY,
-  stateMachineArn: env.STATE_MACHINE_ARN,
-  stateMachineArnOffline: env.STATE_MACHINE_ARN_OFFLINE,
+  queueName: env.QueueName,
 });
 
 const validateConfig = (config: any) => {
@@ -18,8 +17,7 @@ const validateConfig = (config: any) => {
     currencySchema,
     z.object({
       apiKey: z.string().min(1),
-      stateMachineArn: z.string().min(1),
-      stateMachineArnOffline: z.string().min(1),
+      queueName: z.string().min(1),
     }),
   );
 

@@ -6,6 +6,7 @@ plugins:
   - serverless-iam-roles-per-function
   - serverless-webpack
   - serverless-dynamodb
+  - serverless-offline-sqs
   - serverless-offline
   - serverless-offline-ses-v2
 
@@ -35,6 +36,14 @@ custom:
       errorHandlerStep: arn:aws:lambda:us-east-1:101010101010:function:${env:APP_NAME, 'tshExampleApp'}-${opt:stage, 'dev'}-error-handler-step-lambda
       completeTransactionStep: arn:aws:lambda:us-east-1:101010101010:function:${env:APP_NAME, 'tshExampleApp'}-${opt:stage, 'dev'}-complete-transaction-step-lambda
       # PLOP_ADD_WORKFLOW_STEP_LOCAL_STEP
+  serverless-offline-sqs:
+    autoCreate: true
+    apiVersion: '2012-11-05'
+    endpoint: http://0.0.0.0:9324
+    region: eu-west-1
+    accessKeyId: root
+    secretAccessKey: root
+    skipCacheInvalidation: false
   dynamodb:
     stages:
       - local
@@ -93,6 +102,16 @@ provider:
           Fn::GetAtt:
             - currencyTable
             - Arn
+      - Effect: Allow
+        Action:
+          - sqs:SendMessage
+          - sqs:ReceiveMessage
+          - sqs:DeleteMessage
+          - sqs:GetQueueUrl
+        Resource:
+          Fn::GetAtt:
+            - sqsQueue
+            - Arn
   apiGateway:
     apiKeys: ${self:custom.apiKeys.${opt:stage, 'local'}}
 
@@ -109,6 +128,7 @@ functions:
   - ${file(functions/complete-transaction/function.yml)}
   - ${file(workflows/transaction-workflow/complete-transaction-step/function.yml)}
   - ${file(functions/receive-payment-notification/function.yml)}
+  - ${file(functions/sqs-handler/function.yml)}
   # PLOP_ADD_LAMBDA
 
 stepFunctions:
@@ -140,3 +160,7 @@ resources:
           - AttributeName: sk
             KeyType: RANGE
         BillingMode: PAY_PER_REQUEST
+    sqsQueue:
+      Type: "AWS::SQS::Queue"
+      Properties:
+        QueueName: ${env:APP_NAME, 'tshExampleApp'}-sqs-queue-${opt:stage, 'local'}
