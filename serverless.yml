@@ -1,0 +1,167 @@
+service: ${env:APP_NAME, 'tshExampleApp'}
+useDotenv: true
+plugins:
+  - serverless-step-functions-local
+  - serverless-step-functions
+  - serverless-iam-roles-per-function
+  - serverless-webpack
+  - serverless-dynamodb
+  - serverless-offline-sqs
+  - serverless-offline
+  - serverless-offline-ses-v2
+
+package:
+  individually: true
+
+custom:
+  environment:
+    DYNAMODB_CURRENCY_TABLE: ${env:APP_NAME, 'tshExampleApp'}-${env:DYNAMODB_CURRENCY_TABLE}-${opt:stage, 'local'}
+  vpc:
+    securityGroupIds:
+      - ${env:SECURITY_GROUP_ID}
+    subnetIds:
+      - ${env:SUBNET_ID_1}
+      - ${env:SUBNET_ID_2}
+  webpack:
+    webpackConfig: "webpack.config.js"
+    packager: "npm"
+  stepFunctionsLocal:
+    externalInstance: true
+    accountId: 101010101010
+    region: us-east-1
+    stepFunctionsEndpoint: http://127.0.0.1:8083
+    TaskResourceMapping:
+      startTransactionStep: arn:aws:lambda:us-east-1:101010101010:function:${env:APP_NAME, 'tshExampleApp'}-${opt:stage, 'dev'}-start-transaction-step-lambda
+      saveUserDataStep: arn:aws:lambda:us-east-1:101010101010:function:${env:APP_NAME, 'tshExampleApp'}-${opt:stage, 'dev'}-save-user-data-step-lambda
+      errorHandlerStep: arn:aws:lambda:us-east-1:101010101010:function:${env:APP_NAME, 'tshExampleApp'}-${opt:stage, 'dev'}-error-handler-step-lambda
+      completeTransactionStep: arn:aws:lambda:us-east-1:101010101010:function:${env:APP_NAME, 'tshExampleApp'}-${opt:stage, 'dev'}-complete-transaction-step-lambda
+      # PLOP_ADD_WORKFLOW_STEP_LOCAL_STEP
+  serverless-offline-sqs:
+    autoCreate: true
+    apiVersion: '2012-11-05'
+    endpoint: http://0.0.0.0:9324
+    region: eu-west-1
+    accessKeyId: root
+    secretAccessKey: root
+    skipCacheInvalidation: false
+  dynamodb:
+    stages:
+      - local
+    start:
+      docker: true
+      port: 8005
+      inMemory: true
+      migrate: true
+      seed: true
+      convertEmptyValues: true
+  apiKeys:
+    local:
+      - name: ${env:APP_NAME, 'tshExampleApp'}-local-key
+        value: ${env:API_KEY}
+    dev:
+      - name: ${env:APP_NAME, 'tshExampleApp'}-dev-key
+  serverless-offline-ses-v2:
+    port: 8006
+
+provider:
+  name: aws
+  runtime: nodejs18.x
+  region: ${env:AWS_LAMBDAS_REGION, 'eu-west-1'}
+  stage: ${opt:stage, 'dev'}
+  memorySize: 256
+  timeout: 30
+  logRetentionInDays: 30
+  environment:
+    APP_NAME: ${env:APP_NAME, 'tshExampleApp'}
+    AWS_LAMBDAS_REGION: ${env:AWS_LAMBDAS_REGION, 'eu-west-1'}
+    API_KEY: ${env:API_KEY}
+  iam:
+    role:
+      statements:
+      - Effect: Allow
+        Action:
+          - ec2:CreateNetworkInterface
+          - ec2:DescribeNetworkInterfaces
+          - ec2:DeleteNetworkInterface
+          - ec2:DetachNetworkInterface
+        Resource: "*"
+      - Effect: Allow
+        Action:
+          - lambda:InvokeFunction
+          - lambda:InvokeAsync
+          - states:StartExecution
+          - states:SendTaskSuccess
+        Resource:
+          - "*"
+      - Effect: Allow
+        Action:
+          - dynamodb:PutItem
+          - dynamodb:UpdateItem
+          - dynamodb:Query
+        Resource:
+          Fn::GetAtt:
+            - currencyTable
+            - Arn
+      - Effect: Allow
+        Action:
+          - sqs:SendMessage
+          - sqs:ReceiveMessage
+          - sqs:DeleteMessage
+          - sqs:GetQueueUrl
+        Resource:
+          Fn::GetAtt:
+            - sqsQueue
+            - Arn
+  apiGateway:
+    apiKeys: ${self:custom.apiKeys.${opt:stage, 'local'}}
+
+functions:
+  - ${file(functions/health-check/function.yml)}
+  - ${file(functions/rates-importer/function.yml)}
+  - ${file(functions/get-rates/function.yml)}
+  - ${file(functions/start-transaction/function.yml)}
+  - ${file(functions/check-transaction-status/function.yml)}
+  - ${file(workflows/transaction-workflow/start-transaction-step/function.yml)}
+  - ${file(functions/save-user-data/function.yml)}
+  - ${file(workflows/transaction-workflow/save-user-data-step/function.yml)}
+  - ${file(workflows/transaction-workflow/error-handler-step/function.yml)}
+  - ${file(functions/complete-transaction/function.yml)}
+  - ${file(workflows/transaction-workflow/complete-transaction-step/function.yml)}
+  - ${file(functions/receive-payment-notification/function.yml)}
+  - ${file(functions/get-transactions-history/function.yml)}
+  - ${file(functions/sqs-handler/function.yml)}
+  # PLOP_ADD_LAMBDA
+
+stepFunctions:
+  stateMachines:
+    TransactionWorkflow: ${file(workflows/transaction-workflow/workflow.yml)}
+  # PLOP_ADD_WORKFLOW_STATE_MACHINE
+
+resources:
+  Outputs:
+    TransactionWorkflowStateMachine:
+      Description: Transaction workflow state machine Arn
+      Value:
+        Ref: TransactionWorkflow${self:service}${opt:stage, 'dev'}
+    # PLOP_ADD_WORKFLOW_RESOURCE
+
+  Resources:
+    currencyTable:
+      Type: "AWS::DynamoDB::Table"
+      Properties:
+        TableName: ${env:APP_NAME, 'tshExampleApp'}-${env:DYNAMODB_CURRENCY_TABLE}-${opt:stage, 'local'}
+        AttributeDefinitions:
+          - AttributeName: pk
+            AttributeType: S
+          - AttributeName: sk
+            AttributeType: S
+        KeySchema:
+          - AttributeName: pk
+            KeyType: HASH
+          - AttributeName: sk
+            KeyType: RANGE
+        BillingMode: PAY_PER_REQUEST
+    sqsQueue:
+      Type: "AWS::SQS::Queue"
+      Properties:
+        QueueName: ${env:APP_NAME, 'tshExampleApp'}-sqs-queue-${opt:stage, 'local'}

@@ -1,0 +1,9 @@
+health-check:
+  handler: functions/health-check/handler.handle
+  vpc: ${self:custom.vpc}
+  events:
+    - http:
+        path: /health-check
+        method: GET
+        private: true
+        cors: true

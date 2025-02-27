@@ -1,0 +1,56 @@
+image: atlassian/default-image:4
+definitions:
+  steps:
+    - step: &compile
+        name: Compile
+        caches:
+          - node
+        script:
+          - npm ci
+          - npm run lint
+    - step: &test
+        name: Test
+        services:
+          - docker
+        size: 2x
+        script:
+          - npm ci
+          - npm install pm2 -g
+          - npm run lint
+          - docker-compose up -d
+          - pm2 start "./node_modules/.bin/serverless offline start -s local --httpPort 1337 --lambdaPort 4000 --reloadHandler" --wait-ready --listen-timeout 10000 --env RUN_READY_PROCESS=true
+          - npm run test
+          - pm2 stop all
+    - step: &deploy
+        name: Deploy
+        trigger: manual
+        caches:
+          - node
+        script:
+          - npm install
+          - ./node_modules/.bin/serverless config credentials --provider aws --key ${AWS_LAMBDA_KEY} --secret ${AWS_LAMBDA_SECRET}
+          - ./node_modules/.bin/serverless deploy --stage ${STAGE}
+
+pipelines:
+  default:
+    - step: *compile
+    # - step: *test
+  custom:
+    deploy-to-dev:
+      - step: *compile
+      - step:
+          <<: *deploy
+          deployment: dev
+          name: Deploy to DEV
+
+  branches:
+    master:
+      - step: *compile
+      - step:
+          <<: *deploy
+          deployment: production
+    develop:
+      - step: *compile
+      - step:
+          <<: *deploy
+          deployment: dev

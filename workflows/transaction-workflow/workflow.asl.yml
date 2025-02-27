@@ -1,0 +1,65 @@
+Comment: Transaction Workflow
+StartAt: startTransactionStep
+States:
+  errorHandlerStep:
+    Type: Task
+    Resource: !GetAtt error-handler-step-lambda.Arn
+    TimeoutSeconds: 28
+    End: true
+  startTransactionStep:
+    Type: Task
+    Resource: arn:aws:states:::lambda:invoke.waitForTaskToken
+    Parameters:
+      FunctionName: !GetAtt start-transaction-step-lambda.Arn
+      Payload:
+        taskToken.$: $$.Task.Token
+        transactionId.$: $.transactionId
+        body:
+          currencyFrom.$: $.body.currencyFrom
+          currencyTo.$: $.body.currencyTo
+          currencyFromAmount.$: $.body.currencyFromAmount
+    TimeoutSeconds: 600
+    Catch:
+      - ErrorEquals:
+          - States.ALL
+        ResultPath: $.error
+        Next: errorHandlerStep
+    Next: saveUserDataStep
+  saveUserDataStep:
+    Type: Task
+    Resource: arn:aws:states:::lambda:invoke.waitForTaskToken
+    Parameters:
+      FunctionName: !GetAtt save-user-data-step-lambda.Arn
+      Payload:
+        taskToken.$: $$.Task.Token
+        transactionId.$: $.transactionId
+        body:
+          firstName.$: $.body.firstName
+          lastName.$: $.body.lastName
+          city.$: $.body.city
+          street.$: $.body.street
+          zipCode.$: $.body.zipCode
+          email.$: $.body.email
+    TimeoutSeconds: 600
+    Catch:
+      - ErrorEquals:
+          - States.ALL
+        ResultPath: $.error
+        Next: errorHandlerStep
+    Next: completeTransactionStep
+  completeTransactionStep:
+    Type: Task
+    Resource: arn:aws:states:::lambda:invoke.waitForTaskToken
+    Parameters:
+      FunctionName: !GetAtt complete-transaction-step-lambda.Arn
+      Payload:
+        taskToken.$: $$.Task.Token
+        transactionId.$: $.transactionId
+        securityPaymentKey.$: $.securityPaymentKey
+    TimeoutSeconds: 600
+    Catch:
+      - ErrorEquals:
+          - States.ALL
+        ResultPath: $.error
+        Next: errorHandlerStep
+    End: true

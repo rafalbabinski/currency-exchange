@@ -1,0 +1,2 @@
+{{ kebabCase name }}-lambda:
+  handler: workflows/{{workflow}}/{{kebabCase name}}/handler.handle

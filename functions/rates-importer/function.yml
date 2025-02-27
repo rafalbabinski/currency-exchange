@@ -1,0 +1,20 @@
+rates-importer:
+  handler: functions/rates-importer/handler.handle
+  vpc: ${self:custom.vpc}
+  environment:
+    DYNAMODB_CURRENCY_TABLE: ${self:custom.environment.DYNAMODB_CURRENCY_TABLE}
+    CURRENCY_AVAILABLE: ${env:CURRENCY_AVAILABLE}
+    CURRENCY_SCOPE: ${env:CURRENCY_SCOPE}
+    BASE_IMPORTER_CURRENCY: ${env:BASE_IMPORTER_CURRENCY}
+    CURRENCY_API_URL: ${env:CURRENCY_API_URL}
+    CURRENCY_API_HEADER: ${env:CURRENCY_API_HEADER}
+    CURRENCY_API_TOKEN: ${env:CURRENCY_API_TOKEN}
+    RATES_IMPORTER_LAMBDA_RATE: ${env:RATES_IMPORTER_LAMBDA_RATE}
+  events:
+    - http:
+        path: /rates-importer
+        method: GET
+        private: true
+        cors: true
+    - schedule:
+        rate: ${env:RATES_IMPORTER_LAMBDA_RATE}

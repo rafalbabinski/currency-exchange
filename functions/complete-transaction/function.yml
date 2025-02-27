@@ -1,0 +1,28 @@
+complete-transaction:
+  handler: functions/complete-transaction/handler.handle
+  vpc: ${self:custom.vpc}
+  environment:
+    DYNAMODB_CURRENCY_TABLE: ${self:custom.environment.DYNAMODB_CURRENCY_TABLE}
+    PAYMENT_API_URL: ${env:PAYMENT_API_URL}
+    PAYMENT_API_HEADER: ${env:PAYMENT_API_HEADER}
+    PAYMENT_API_TOKEN: ${env:PAYMENT_API_TOKEN}
+    API_GATEWAY_URL: 
+      { 'Fn::Join': [ 
+          '', 
+          [ 
+            'https://', 
+            { 'Ref': 'ApiGatewayRestApi' }, 
+            '.execute-api.${self:provider.region}.amazonaws.com/${self:provider.stage}' 
+          ] 
+        ] 
+      }
+  events:
+    - http:
+        path: /transaction/{id}/payment
+        method: POST
+        private: true
+        cors: true
+        request: 
+            parameters: 
+              paths: 
+                id: true

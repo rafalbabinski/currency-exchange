@@ -1,0 +1,16 @@
+receive-payment-notification:
+  handler: functions/receive-payment-notification/handler.handle
+  vpc: ${self:custom.vpc}
+  environment:
+    DYNAMODB_CURRENCY_TABLE: ${self:custom.environment.DYNAMODB_CURRENCY_TABLE}
+    PAYMENT_API_URL: ${env:PAYMENT_API_URL}
+    SES_FROM_EMAIL_ADDRESS: ${env:SES_FROM_EMAIL_ADDRESS}
+  events:
+    - http:
+        path: /transaction/{id}/payment-notification
+        method: POST
+        cors: true
+        request: 
+            parameters: 
+              paths: 
+                id: true

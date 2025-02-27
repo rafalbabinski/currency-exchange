@@ -1,0 +1,2 @@
+name: {{pascalCase name}}Workflow${self:service}${opt:stage, 'dev'}
+definition: ${file(./workflows/{{kebabCase name}}/workflow.asl.yml)}

@@ -1,0 +1,16 @@
+check-transaction-status:
+  handler: functions/check-transaction-status/handler.handle
+  vpc: ${self:custom.vpc}
+  environment:
+    DYNAMODB_CURRENCY_TABLE: ${self:custom.environment.DYNAMODB_CURRENCY_TABLE}
+    TIME_TO_COMPLETE_TRANSACTION: ${env:TIME_TO_COMPLETE_TRANSACTION}
+  events:
+    - http:
+        path: /transaction/{id}/status
+        method: GET
+        private: true
+        cors: true
+        request: 
+            parameters: 
+              paths: 
+                id: true
