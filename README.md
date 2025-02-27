@@ -1,137 +1,216 @@
-<p align="center">
- <img src="data/logo.svg" alt="" />
-</p>
+Currency Exchange Service
 
-<p align="center">
-   Current travis build:
-  <a href="https://travis-ci.com/TheSoftwareHouse/serverless-boilerplate"><img src="https://travis-ci.com/TheSoftwareHouse/serverless-boilerplate.svg?branch=master" alt="build status" height="18"></a>
-  &emsp;
-</p>
+The Currency Exchange Service provides real-time currency conversion capabilities, allowing users to convert amounts between different currencies efficiently.
 
-##
+## Features
 
-Boilerplate code for rapidly creating ready-to-deploy Serverless Framework services.
+- **Real-Time Conversion:** Instantly convert currency values based on up-to-date exchange rates.
+- **Historical Data:** Retrieve historical exchange rates for various currencies.
+- **Secure Transactions:** Ensures safe and reliable exchange processes.
+- **Comprehensive API:** A robust set of endpoints for seamless integration.
 
-##
+## Getting Started
 
-### Quick Start
+### Prerequisites
 
-- **Install**
+- **Node.js**: Ensure you have Node.js installed.
+- **npm**: Node package manager is required to manage dependencies.
+- **Docker**: Required for local development and testing.
 
+### Installation
+
+1. Clone the Repository:
+   ```sh
+   git clone https://github.com/rafalbabinski/currency-exchange.git
+   ```
+2. Navigate to the Project Directory:
+   ```sh
+   cd currency-exchange
+   ```
+3. Install Dependencies:
+   ```sh
+   npm install
+   ```
+4. Set Up Environment Variables:
+   - Rename `.env.dist` to `.env`.
+   - Fill in all required environment variables.
+
+### Running the Application
+
+#### Running Docker:
+```sh
+docker-compose up
 ```
-npm install
+
+#### Development Mode:
+```sh
+npm run dev
 ```
 
-rename .env.dist to .env, fill all information
+## API Endpoints
 
-- **Create lambda or workflow**
+The service exposes several RESTful endpoints for currency conversion and data retrieval:
 
+### 1. Import Rates
+**Endpoint:** `POST /rates-importer`
+**Description:** Imports exchange rates for various currencies.
+
+#### Response:
+```json
+{
+  "currency": "CURRENCY_CODE",
+  "rates": [
+    {
+      "currency": "CURRENCY_CODE",
+      "rate": number
+    }
+  ]
+}
 ```
-npm run plop
+
+### 2. Get Actual Rates
+**Endpoint:** `GET /get-rates`
+**Description:** Retrieves the latest exchange rates.
+
+#### Query Parameters:
+- `currencyFrom`: The base currency code (e.g., USD).
+
+#### Response:
+```json
+{
+  "CURRENCY_CODE": number
+}
 ```
 
-##
+### 3. Start Transaction
+**Endpoint:** `POST /transaction/start`
+**Description:** Initiates a currency exchange transaction.
 
-### Development Local
-
-- docker-compose up
-- npm install
-- rename .env.dist to .env
-- fill all information
-- npm run run-migrations
-- npm run dev
-
-### Debugging locally
-
-Serverless uses workers to run lambdas locally. To debug them in your IDE you need to add `--useInProcess` flag, or run the following command:
-
+#### Request Body:
+```json
+{
+  "currencyFrom": "CURRENCY_CODE",
+  "currencyTo": "CURRENCY_CODE",
+  "currencyFromAmount": number
+}
 ```
+
+#### Response:
+```json
+{
+  "transactionId": "string",
+  "status": "pending"
+}
+```
+
+### 4. Check Transaction Status
+**Endpoint:** `GET /transaction/{id}/status`
+**Description:** Retrieves the current status of a transaction.
+
+#### Response:
+```json
+{
+  "status": "TRANSACTION_STATUS"
+}
+```
+
+### 5. Save Transaction User Data
+**Endpoint:** `POST /transaction/{id}/save-user-data`
+**Description:** Stores user information required for a transaction.
+
+#### Request Body:
+```json
+{
+  "firstName": "string",
+  "lastName": "string",
+  "city": "string",
+  "street": "string",
+  "zipCode": "string",
+  "email": "string"
+}
+```
+
+#### Response:
+```json
+{
+  "success": true
+}
+```
+
+### 6. Complete Transaction
+**Endpoint:** `POST /transaction/{id}/payment`
+**Description:** Completes the transaction by processing payment details.
+
+#### Request Body:
+```json
+{
+  "cardholderName": "string",
+  "cardNumber": "string",
+  "expirationMonth": "string",
+  "expirationYear": "string",
+  "ccv": "string"
+}
+```
+
+#### Response:
+```json
+{
+  "success": true
+}
+```
+
+## Application Architecture
+
+The project follows a modular architecture, organized as follows:
+
+- **`functions/`**: Core business logic for currency conversion and data retrieval.
+- **`data/`**: Data-related modules, such as exchange rate sources.
+- **`shared/`**: Shared utilities and helper functions.
+- **`workflows/transaction-workflow/`**: Manages transaction-related workflows.
+
+## Development & Debugging
+
+### Running Workflows Locally
+```sh
+npm run start-workflow --workflow=NAME_OF_THE_WORKFLOW
+```
+
+### Debugging Locally
+Serverless uses workers to run lambdas locally. To debug them, use:
+```sh
 npm run dev-with-debug
 ```
 
-##
-
-### Run workflow locally
-
-- npm run start-workflow --workflow=NAME_OF_THE_WORKFLOW
-
-### Follow workflow logs
-
-To follow all the logs from the step function executions you can use the command:
-
-```
+### Viewing Workflow Logs
+To follow step function logs:
+```sh
 npm run get-sf-logs
 ```
 
-##
+## Testing
 
-### Develop workflow
+To run tests for the application:
+```sh
+npm test
+```
 
-We support ASL for Step Functions. Make sure to install AWS Toolkit so you can render graph for step functions and validate its syntax easily.
+We use the following testing frameworks:
+- **[Supertest](https://github.com/visionmedia/supertest)** for API testing.
+- **[Mocha](https://mochajs.org/)** for unit and integration testing.
+- **[Zod](https://zod.dev/)** for schema validation.
 
-##
+## Deployment
 
-### Deploy
+### Using Bitbucket Pipelines
+The deployment pipeline consists of two steps:
 
-The best choice for deployment is the bitbucket pipeline.
+1. **Compile (automated start)**
+   - Build the application
+   - Run Lambda offline
+   - Run tests
 
-Deployment [pipeline](bitbucket-pipelines.yml) consist of two steps:
+2. **Deploy (manual action required)**
 
-1. compile (automated start)
-   - build
-   - run lambda offline
-   - run test
-2. deploy (user action required)
-
-##
-
-### Other good source of information
-
-- https://serverless.com/framework/docs/providers/aws/guide/variables/
-- https://serverless.com/framework/docs/providers/aws/cli-reference/config-credentials/
-
-##
-
-### What do we use for testing lambdas?
-
-1. [supertest](https://github.com/visionmedia/supertest#readme)
-1. [mocha](https://mochajs.org/)
-
-Here you can check example tests: [handler.spec.ts](functions/example-lambda/tests/handler.spec.ts)
-
-##
-
-### What do we use for validating schemas?
-
-We use [zod](https://zod.dev/) for schema validation.
-
-##
-
-### **Issues:**
-
-If you notice any issues while using, let as know on **[github](https://github.com/TheSoftwareHouse/serverless-boilerplate/issues)**.
-Security issues, please send on <a href="mailto:security.opensource@tsh.io"><b>email</b></a>
-
-### **You may also like our other projects:**
-
-- **[RAD Modules](https://github.com/TheSoftwareHouse/rad-modules)**
-- **[RAD Modules Tools](https://github.com/TheSoftwareHouse/rad-modules-tools)**
-- **[Kakunin](https://github.com/TheSoftwareHouse/Kakunin)**
-- **[Babelsheet-js](https://github.com/TheSoftwareHouse/babelsheet-js)**
-- **[Fogger](https://github.com/TheSoftwareHouse/fogger)**
-
-### **About us:**
-
-<p align="center">
-  <a href="https://tsh.io/pl"><b>The Software House</b></a>
-  &emsp;
-  <img src="data/tsh.png" alt="tsh.png" width="50" />
-</p>
-
-##
-
-### License
-
-[![license](https://img.shields.io/badge/license-MIT-4dc71f.svg)](https://raw.githubusercontent.com/TheSoftwareHouse/serverless-boilerplate/main/LICENSE)
-
-This project is licensed under the terms of the [MIT license](/LICENSE).
+### Additional Resources
+- [Serverless Framework Guide](https://serverless.com/framework/docs/providers/aws/guide/variables/)
+- [AWS CLI Configuration](https://serverless.com/framework/docs/providers/aws/cli-reference/config-credentials/)
